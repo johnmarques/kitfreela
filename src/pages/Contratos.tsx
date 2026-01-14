@@ -501,6 +501,7 @@ CPF:
         client_cpf: clientDocument,
         client_address: [clientAddress, clientCity, clientState].filter(Boolean).join(', '),
         payment_notes: paymentNotes,
+        contract_text: contractText, // Texto completo do contrato para o PDF
       }
 
       await generatePdf(doc)

@@ -102,6 +102,22 @@ function generateProposalHtml(doc: Document): string {
 
 // Gerar HTML do contrato
 function generateContractHtml(doc: Document): string {
+  // Se tiver contract_text (texto completo do preview), usa ele
+  if (doc.contract_text) {
+    return `
+      <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; color: #1f2937;">
+        <pre style="white-space: pre-wrap; font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; line-height: 1.6; margin: 0;">
+${doc.contract_text}
+        </pre>
+        <!-- Footer -->
+        <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 40px; text-align: center; color: #9ca3af; font-size: 12px;">
+          <p style="margin: 0;">Documento gerado por KitFreela</p>
+        </div>
+      </div>
+    `
+  }
+
+  // Fallback: template simplificado (para contratos antigos sem contract_text)
   return `
     <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 40px; color: #1f2937;">
       <!-- Header -->
@@ -155,13 +171,6 @@ function generateContractHtml(doc: Document): string {
           </div>
         </div>
       ` : ''}
-
-      <!-- Status -->
-      <div style="margin-bottom: 30px;">
-        <div style="display: inline-block; padding: 6px 12px; background: #dbeafe; color: #1d4ed8; border-radius: 4px; font-size: 12px; font-weight: 500;">
-          Status: ${translateStatus(doc.status)}
-        </div>
-      </div>
 
       <!-- Assinaturas -->
       <div style="margin-top: 60px; display: flex; justify-content: space-between;">

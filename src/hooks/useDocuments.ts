@@ -61,6 +61,7 @@ export interface Document {
   deadline_date?: string
   payment_type?: string
   payment_notes?: string
+  contract_text?: string // Texto completo do contrato (para PDF)
 }
 
 // Converte registro do banco para Document
@@ -133,6 +134,7 @@ async function fetchContratos(): Promise<Document[]> {
     updated_at: (contract.updated_at as string) || new Date().toISOString(),
     service_name: contract.service_name as string | undefined,
     proposal_id: contract.proposal_id as string | undefined,
+    contract_text: contract.contract_text as string | undefined, // Texto completo do contrato
   }))
 }
 
