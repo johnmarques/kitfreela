@@ -81,23 +81,34 @@ export type ContractInput = Omit<Contract, 'id' | 'created_at' | 'updated_at'>
 // Criar contrato
 async function createContract(input: ContractInput): Promise<Contract> {
   const now = new Date().toISOString()
-  const newContract: Contract = {
-    ...input,
-    id: generateId(),
-    created_at: now,
-    updated_at: now,
-  }
 
   if (isSupabaseConfigured()) {
+    // Para Supabase: NÃO enviar id, created_at, updated_at
+    // O banco gera UUID automaticamente e timestamps via DEFAULT
+    console.log('[useContracts] Criando contrato no Supabase...')
+    console.log('[useContracts] Dados:', JSON.stringify(input, null, 2))
+
     const { data, error } = await supabase
       .from('contracts')
-      .insert(newContract)
+      .insert(input)
       .select()
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('[useContracts] Erro ao criar contrato:', error)
+      throw error
+    }
+
+    console.log('[useContracts] Contrato criado com sucesso:', data?.id)
     return data as Contract
   } else {
+    // Fallback localStorage: gera ID manualmente
+    const newContract: Contract = {
+      ...input,
+      id: generateId(),
+      created_at: now,
+      updated_at: now,
+    }
     const contracts = getFromStorage()
     contracts.unshift(newContract)
     saveToStorage(contracts)

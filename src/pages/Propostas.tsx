@@ -47,7 +47,6 @@ export default function Propostas() {
   const [showPreview, setShowPreview] = useState(false)
   const [savedProposalId, setSavedProposalId] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [isLoadingProposal, setIsLoadingProposal] = useState(false)
 
   // Busca proposta existente se tiver ID na URL
   const { data: existingProposal, isLoading: loadingExisting } = useProposalById(editingId || undefined)
@@ -56,7 +55,6 @@ export default function Propostas() {
   useEffect(() => {
     if (editingId && existingProposal) {
       console.log('[Propostas] Carregando proposta para edicao:', editingId)
-      setIsLoadingProposal(true)
 
       setClienteNome(existingProposal.cliente_nome || '')
       setClienteTelefone(existingProposal.cliente_telefone || '')
@@ -73,7 +71,6 @@ export default function Propostas() {
 
       setSavedProposalId(existingProposal.id)
       setIsEditing(true)
-      setIsLoadingProposal(false)
 
       console.log('[Propostas] Dados carregados. Modo edicao ativo.')
     }
@@ -471,7 +468,7 @@ export default function Propostas() {
                     isGenerating ||
                     freelancerLoading ||
                     !freelancerId ||
-                    (currentProposalId && showPreview) // Desabilita apos gerar documento
+                    !!(currentProposalId && showPreview) // Desabilita apos gerar documento
                   }
                 >
                   {isSaving ? (

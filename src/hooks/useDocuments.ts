@@ -120,6 +120,8 @@ async function fetchContratos(): Promise<Document[]> {
     return []
   }
 
+  console.log('[useDocuments] Contratos encontrados:', data?.length || 0)
+
   // Converte contratos para Document
   return (data || []).map((contract: Record<string, unknown>) => ({
     id: contract.id as string,
@@ -128,13 +130,24 @@ async function fetchContratos(): Promise<Document[]> {
     client_name: (contract.client_name as string) || '',
     client_email: contract.client_email as string | undefined,
     client_phone: contract.client_phone as string | undefined,
+    client_document: contract.client_document as string | undefined,
+    client_address: contract.client_address as string | undefined,
     value: (contract.value as number) || 0,
     status: (contract.status as ContractStatus) || 'rascunho',
     created_at: (contract.created_at as string) || new Date().toISOString(),
     updated_at: (contract.updated_at as string) || new Date().toISOString(),
     service_name: contract.service_name as string | undefined,
+    service: contract.service_name as string | undefined, // Alias para compatibilidade
+    scope: contract.service_scope as string | undefined, // Alias para compatibilidade
+    deliverables: contract.deliverables as string | undefined,
+    deadline_mode: contract.deadline_mode as 'days' | 'date' | undefined,
+    deadline_days: contract.deadline_days as number | undefined,
+    deadline_type: contract.deadline_type as 'dias-uteis' | 'dias-corridos' | undefined,
+    deadline_date: contract.deadline_date as string | undefined,
+    payment_type: contract.payment_type as string | undefined,
+    payment_notes: contract.payment_notes as string | undefined,
     proposal_id: contract.proposal_id as string | undefined,
-    contract_text: contract.contract_text as string | undefined, // Texto completo do contrato
+    contract_text: contract.contract_text as string | undefined,
   }))
 }
 

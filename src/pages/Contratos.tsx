@@ -435,9 +435,11 @@ CPF:
     setIsLoading(true)
 
     try {
+      // Payload para o banco - usar undefined para campos opcionais vazios
+      // Supabase converte undefined para NULL automaticamente
       const contractData = {
         user_id: user.id,
-        proposal_id: proposalId,
+        proposal_id: proposalId || undefined,
         person_type: personType,
         client_name: clientName,
         client_document: clientDocument || undefined,
@@ -455,13 +457,15 @@ CPF:
         deadline_mode: deadlineMode,
         deadline_days: deadlineMode === 'days' ? parseInt(deadlineDays) || undefined : undefined,
         deadline_type: deadlineMode === 'days' ? deadlineType : undefined,
-        deadline_date: deadlineMode === 'date' ? deadlineDate || undefined : undefined,
+        deadline_date: deadlineMode === 'date' && deadlineDate ? deadlineDate : undefined,
         payment_type: paymentType,
         payment_installments: installments.length > 0 ? installments : undefined,
         payment_notes: paymentNotes || undefined,
         status,
         contract_text: contractText,
       }
+
+      console.log('[Contratos] Salvando contrato...', editId ? 'UPDATE' : 'INSERT')
 
       if (editId) {
         await updateContract.mutateAsync({ id: editId, data: contractData })
@@ -472,8 +476,9 @@ CPF:
       }
 
       navigate('/app/documentos')
-    } catch {
-      toast.error('Erro ao salvar contrato')
+    } catch (error) {
+      console.error('[Contratos] Erro ao salvar:', error)
+      toast.error('Erro ao salvar contrato: ' + (error instanceof Error ? error.message : 'Erro desconhecido'))
     } finally {
       setIsLoading(false)
     }

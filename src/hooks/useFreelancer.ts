@@ -188,7 +188,6 @@ async function updateFreelancer(
  */
 export function useFreelancer() {
   const { user } = useAuth()
-  const queryClient = useQueryClient()
 
   return useQuery({
     queryKey: ['freelancer', user?.id],
