@@ -29,6 +29,7 @@ import type { ProposalStatus } from '@/types'
 
 // Tipo para dados do formulario (interface do frontend)
 export interface ProposalFormData {
+  cliente_id?: string // ID do cliente na tabela clients (opcional)
   cliente_nome: string
   cliente_email?: string
   cliente_telefone?: string
@@ -77,6 +78,7 @@ async function createProposal(
   // Prepara dados para o Supabase (colunas em portugues)
   const insertData = {
     freelancer_id: freelancerId,
+    cliente_id: data.cliente_id || null, // ID do cliente na tabela clients
     cliente_nome: data.cliente_nome.trim(),
     cliente_email: data.cliente_email?.trim() || null,
     cliente_telefone: data.cliente_telefone?.trim() || null,
@@ -124,6 +126,7 @@ async function updateProposal(
     updated_at: new Date().toISOString(),
   }
 
+  if (data.cliente_id !== undefined) updateData.cliente_id = data.cliente_id || null
   if (data.cliente_nome !== undefined) updateData.cliente_nome = data.cliente_nome.trim()
   if (data.cliente_email !== undefined) updateData.cliente_email = data.cliente_email?.trim() || null
   if (data.cliente_telefone !== undefined) updateData.cliente_telefone = data.cliente_telefone?.trim() || null

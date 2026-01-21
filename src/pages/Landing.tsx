@@ -4,6 +4,14 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
 export default function Landing() {
+  // Scroll suave para seção específica
+  const scrollToSection = (sectionId: string) => {
+    const element = document.getElementById(sectionId)
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
   return (
     <div className="min-h-screen bg-white">
       {/* Navbar */}
@@ -47,7 +55,12 @@ export default function Landing() {
                   Comecar agora - É GRÁTIS
                 </Button>
               </Link>
-              <Button size="lg" variant="outline" className="w-full sm:w-auto">
+              <Button
+                size="lg"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => scrollToSection('como-funciona')}
+              >
                 Ver como funciona
               </Button>
             </div>
@@ -117,7 +130,7 @@ export default function Landing() {
       </section>
 
       {/* Features */}
-      <section className="border-b border-gray-100">
+      <section id="funcionalidades" className="border-b border-gray-100">
         <div className="container mx-auto px-4 py-12 sm:px-6 sm:py-16 md:py-20">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-3 text-xl font-semibold text-gray-900 sm:mb-4 sm:text-2xl md:text-3xl">
@@ -209,14 +222,24 @@ export default function Landing() {
                 ),
               },
             ].map((feature, index) => (
-              <Card key={index}>
+              <Card
+                key={index}
+                className="group cursor-default transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 hover:border-primary/30"
+              >
                 <CardContent className="pt-6">
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10">
-                    <svg className="h-6 w-6 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 transition-all duration-300 group-hover:bg-primary/20 group-hover:scale-110">
+                    <svg
+                      className="h-6 w-6 text-primary transition-transform duration-300 group-hover:scale-110"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
                       {feature.icon}
                     </svg>
                   </div>
-                  <h3 className="mb-2 text-lg font-semibold text-gray-900">{feature.title}</h3>
+                  <h3 className="mb-2 text-lg font-semibold text-gray-900 transition-colors duration-300 group-hover:text-primary">
+                    {feature.title}
+                  </h3>
                   <p className="text-gray-600">{feature.description}</p>
                 </CardContent>
               </Card>
@@ -226,7 +249,7 @@ export default function Landing() {
       </section>
 
       {/* Como Funciona */}
-      <section className="border-b border-gray-100">
+      <section id="como-funciona" className="border-b border-gray-100">
         <div className="container mx-auto px-4 py-12 sm:px-6 sm:py-16 md:py-20">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-3 text-xl font-semibold text-gray-900 sm:mb-4 sm:text-2xl md:text-3xl">Como funciona</h2>
@@ -276,7 +299,7 @@ export default function Landing() {
       </section>
 
       {/* CTA Final */}
-      <section className="border-b border-gray-100">
+      <section id="cta-final" className="border-b border-gray-100">
         <div className="container mx-auto px-4 py-12 sm:px-6 sm:py-16 md:py-20">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-3 text-xl font-semibold text-gray-900 sm:mb-4 sm:text-2xl md:text-3xl">
@@ -309,14 +332,20 @@ export default function Landing() {
               <h4 className="mb-4 text-sm font-semibold text-gray-900">Produto</h4>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  <a href="#" className="hover:text-gray-900">
+                  <button
+                    onClick={() => scrollToSection('funcionalidades')}
+                    className="hover:text-gray-900 transition-colors"
+                  >
                     Funcionalidades
-                  </a>
+                  </button>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900">
+                  <button
+                    onClick={() => scrollToSection('cta-final')}
+                    className="hover:text-gray-900 transition-colors"
+                  >
                     Preços
-                  </a>
+                  </button>
                 </li>
               </ul>
             </div>
@@ -324,12 +353,15 @@ export default function Landing() {
               <h4 className="mb-4 text-sm font-semibold text-gray-900">Suporte</h4>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  <a href="#" className="hover:text-gray-900">
+                  <Link to="/ajuda" className="hover:text-gray-900 transition-colors">
                     Central de Ajuda
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900">
+                  <a
+                    href="mailto:contato@kitfreela.com.br"
+                    className="hover:text-gray-900 transition-colors"
+                  >
                     Contato
                   </a>
                 </li>
@@ -339,14 +371,14 @@ export default function Landing() {
               <h4 className="mb-4 text-sm font-semibold text-gray-900">Legal</h4>
               <ul className="space-y-2 text-sm text-gray-600">
                 <li>
-                  <a href="#" className="hover:text-gray-900">
+                  <Link to="/termos" className="hover:text-gray-900 transition-colors">
                     Termos de Uso
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-gray-900">
+                  <Link to="/privacidade" className="hover:text-gray-900 transition-colors">
                     Privacidade
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

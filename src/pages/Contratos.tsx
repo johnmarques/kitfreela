@@ -15,8 +15,11 @@ import {
 } from '@/components/ui/select'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { useAuth } from '@/contexts/AuthContext'
+import { useFreelancerContext } from '@/contexts/FreelancerContext'
+import { useSettingsContext } from '@/contexts/SettingsContext'
 import { useCreateContract, useUpdateContract, getContractById } from '@/hooks/useContracts'
 import { getProposalById } from '@/hooks/useDocuments'
+import { findOrCreateClient } from '@/hooks/useClients'
 import { generatePdf } from '@/lib/pdf'
 import {
   maskCPF,
@@ -27,7 +30,6 @@ import {
   validateCPF,
   validateCNPJ,
   formatCurrency,
-  formatDate,
   formatDateExtended,
 } from '@/lib/masks'
 import type {
@@ -62,6 +64,8 @@ export default function Contratos() {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const { user } = useAuth()
+  const { freelancerId } = useFreelancerContext()
+  const { formatDate: formatDateFromSettings } = useSettingsContext()
   const createContract = useCreateContract()
   const updateContract = useUpdateContract()
 
@@ -214,13 +218,13 @@ export default function Contratos() {
     } else if (installments.length === 1) {
       paymentText = `a vista, no valor de ${formatCurrency(value)}`
       if (installments[0].due_date) {
-        paymentText += `, com vencimento em ${formatDate(installments[0].due_date)}`
+        paymentText += `, com vencimento em ${formatDateFromSettings(installments[0].due_date)}`
       }
     } else {
       paymentText = `em ${installments.length} parcelas:\n`
       paymentText += installments.map(i => {
         let text = `  - ${i.number}a parcela: ${formatCurrency(i.amount)} (${i.percentage}%)`
-        if (i.due_date) text += ` - vencimento: ${formatDate(i.due_date)}`
+        if (i.due_date) text += ` - vencimento: ${formatDateFromSettings(i.due_date)}`
         return text
       }).join('\n')
     }
@@ -432,13 +436,41 @@ CPF:
       return
     }
 
+    if (!freelancerId) {
+      toast.error('Aguarde o carregamento dos dados do freelancer.')
+      return
+    }
+
     setIsLoading(true)
 
     try {
-      // Payload para o banco - usar undefined para campos opcionais vazios
-      // Supabase converte undefined para NULL automaticamente
+      // 1. Tentar criar/encontrar cliente automaticamente (opcional)
+      console.log('[Contratos] Buscando ou criando cliente...')
+      let clienteId: string | null = null
+      try {
+        clienteId = await findOrCreateClient({
+          freelancer_id: freelancerId,
+          nome: clientName,
+          email: clientEmail || undefined,
+          telefone: clientPhone || undefined,
+          tipo_pessoa: personType,
+          cpf: personType === 'pf' ? clientDocument || undefined : undefined,
+          cnpj: personType === 'pj' ? clientDocument || undefined : undefined,
+          rg: clientRg || undefined,
+          razao_social: clientCompanyName || undefined,
+          endereco: clientAddress || undefined,
+          cidade: clientCity || undefined,
+          estado: clientState || undefined,
+        })
+        console.log('[Contratos] Cliente ID:', clienteId)
+      } catch (clientError) {
+        console.warn('[Contratos] Não foi possível criar cliente, continuando sem:', clientError)
+      }
+
+      // 2. Payload para o banco
       const contractData = {
         user_id: user.id,
+        client_id: clienteId || undefined, // ID do cliente criado/encontrado (ou undefined)
         proposal_id: proposalId || undefined,
         person_type: personType,
         client_name: clientName,
@@ -471,7 +503,7 @@ CPF:
         await updateContract.mutateAsync({ id: editId, data: contractData })
         toast.success('Contrato atualizado com sucesso')
       } else {
-        await createContract.mutateAsync(contractData)
+        await createContract.mutateAsync({ freelancerId, data: contractData })
         toast.success('Contrato criado com sucesso')
       }
 
@@ -516,13 +548,14 @@ CPF:
     }
   }
 
-  // Gerar documento (salvar + mostrar preview)
+  // Gerar documento (mostrar preview com feedback)
   const handleGenerate = () => {
     if (!clientName || !serviceName || !value) {
       toast.error('Preencha os campos obrigatorios')
       return
     }
     setShowPreview(true)
+    toast.success('Preview do contrato gerado! Visualize ao lado.')
   }
 
   return (

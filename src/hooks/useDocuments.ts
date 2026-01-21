@@ -105,12 +105,12 @@ async function fetchPropostas(): Promise<PropostaDB[]> {
   return (data as PropostaDB[]) || []
 }
 
-// Buscar contratos do Supabase
+// Buscar contratos do Supabase (tabela: contratos - PORTUGUES)
 async function fetchContratos(): Promise<Document[]> {
   console.log('[useDocuments] Buscando contratos...')
 
   const { data, error } = await supabase
-    .from('contracts')
+    .from('contratos')
     .select('*')
     .order('created_at', { ascending: false })
 
@@ -122,32 +122,32 @@ async function fetchContratos(): Promise<Document[]> {
 
   console.log('[useDocuments] Contratos encontrados:', data?.length || 0)
 
-  // Converte contratos para Document
-  return (data || []).map((contract: Record<string, unknown>) => ({
-    id: contract.id as string,
+  // Converte contratos (colunas em portugues) para Document (campos em ingles)
+  return (data || []).map((contrato: Record<string, unknown>) => ({
+    id: contrato.id as string,
     type: 'contract' as const,
-    title: `Contrato - ${contract.service_name || 'Sem título'} (${contract.client_name || 'Cliente'})`,
-    client_name: (contract.client_name as string) || '',
-    client_email: contract.client_email as string | undefined,
-    client_phone: contract.client_phone as string | undefined,
-    client_document: contract.client_document as string | undefined,
-    client_address: contract.client_address as string | undefined,
-    value: (contract.value as number) || 0,
-    status: (contract.status as ContractStatus) || 'rascunho',
-    created_at: (contract.created_at as string) || new Date().toISOString(),
-    updated_at: (contract.updated_at as string) || new Date().toISOString(),
-    service_name: contract.service_name as string | undefined,
-    service: contract.service_name as string | undefined, // Alias para compatibilidade
-    scope: contract.service_scope as string | undefined, // Alias para compatibilidade
-    deliverables: contract.deliverables as string | undefined,
-    deadline_mode: contract.deadline_mode as 'days' | 'date' | undefined,
-    deadline_days: contract.deadline_days as number | undefined,
-    deadline_type: contract.deadline_type as 'dias-uteis' | 'dias-corridos' | undefined,
-    deadline_date: contract.deadline_date as string | undefined,
-    payment_type: contract.payment_type as string | undefined,
-    payment_notes: contract.payment_notes as string | undefined,
-    proposal_id: contract.proposal_id as string | undefined,
-    contract_text: contract.contract_text as string | undefined,
+    title: `Contrato - ${contrato.servico_nome || 'Sem título'} (${contrato.cliente_nome || 'Cliente'})`,
+    client_name: (contrato.cliente_nome as string) || '',
+    client_email: contrato.cliente_email as string | undefined,
+    client_phone: contrato.cliente_telefone as string | undefined,
+    client_document: contrato.cliente_documento as string | undefined,
+    client_address: contrato.cliente_endereco as string | undefined,
+    value: (contrato.valor as number) || 0,
+    status: (contrato.status as ContractStatus) || 'rascunho',
+    created_at: (contrato.created_at as string) || new Date().toISOString(),
+    updated_at: (contrato.updated_at as string) || new Date().toISOString(),
+    service_name: contrato.servico_nome as string | undefined,
+    service: contrato.servico_nome as string | undefined, // Alias para compatibilidade
+    scope: contrato.servico_escopo as string | undefined, // Alias para compatibilidade
+    deliverables: contrato.entregas as string | undefined,
+    deadline_mode: contrato.prazo_modo as 'days' | 'date' | undefined,
+    deadline_days: contrato.prazo_dias as number | undefined,
+    deadline_type: contrato.prazo_tipo as 'dias-uteis' | 'dias-corridos' | undefined,
+    deadline_date: contrato.prazo_data as string | undefined,
+    payment_type: contrato.pagamento_tipo as string | undefined,
+    payment_notes: contrato.pagamento_observacoes as string | undefined,
+    proposal_id: contrato.proposta_id as string | undefined,
+    contract_text: contrato.texto_contrato as string | undefined,
   }))
 }
 
@@ -191,10 +191,10 @@ async function updateProposalStatus(id: string, status: ProposalStatus): Promise
   if (error) throw error
 }
 
-// Atualizar status do contrato
+// Atualizar status do contrato (tabela: contratos)
 async function updateContractStatus(id: string, status: ContractStatus): Promise<void> {
   const { error } = await supabase
-    .from('contracts')
+    .from('contratos')
     .update({ status, updated_at: new Date().toISOString() })
     .eq('id', id)
 
@@ -294,6 +294,56 @@ async function duplicateProposal(id: string): Promise<PropostaDB> {
   return data as PropostaDB
 }
 
+// Duplicar contrato
+async function duplicateContract(id: string): Promise<Record<string, unknown>> {
+  const { data: original, error: fetchError } = await supabase
+    .from('contratos')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (fetchError) throw fetchError
+
+  // Copia todos os campos exceto id, timestamps e proposta_id
+  const newContract = {
+    freelancer_id: original.freelancer_id,
+    cliente_id: original.cliente_id,
+    tipo_pessoa: original.tipo_pessoa,
+    cliente_nome: original.cliente_nome,
+    cliente_documento: original.cliente_documento,
+    cliente_rg: original.cliente_rg,
+    cliente_razao_social: original.cliente_razao_social,
+    cliente_endereco: original.cliente_endereco,
+    cliente_cidade: original.cliente_cidade,
+    cliente_estado: original.cliente_estado,
+    cliente_telefone: original.cliente_telefone,
+    cliente_email: original.cliente_email,
+    servico_nome: original.servico_nome,
+    servico_escopo: original.servico_escopo,
+    entregas: original.entregas,
+    valor: original.valor,
+    prazo_modo: original.prazo_modo,
+    prazo_dias: original.prazo_dias,
+    prazo_tipo: original.prazo_tipo,
+    prazo_data: original.prazo_data,
+    pagamento_tipo: original.pagamento_tipo,
+    pagamento_parcelas: original.pagamento_parcelas,
+    pagamento_observacoes: original.pagamento_observacoes,
+    texto_contrato: original.texto_contrato,
+    status: 'rascunho' as ContractStatus, // Sempre começa como rascunho
+    // proposta_id não é copiado (não vincula à proposta original)
+  }
+
+  const { data, error } = await supabase
+    .from('contratos')
+    .insert(newContract)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data as Record<string, unknown>
+}
+
 // Hook para duplicar documento
 export function useDuplicateDocument() {
   const queryClient = useQueryClient()
@@ -303,11 +353,12 @@ export function useDuplicateDocument() {
       if (type === 'proposal') {
         return await duplicateProposal(id)
       }
-      throw new Error('Duplicação de contrato não implementada')
+      return await duplicateContract(id)
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['documents'] })
       queryClient.invalidateQueries({ queryKey: ['propostas'] })
+      queryClient.invalidateQueries({ queryKey: ['contratos'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard'] })
     },
   })
@@ -323,10 +374,10 @@ async function deleteProposal(id: string): Promise<void> {
   if (error) throw error
 }
 
-// Excluir contrato
+// Excluir contrato (tabela: contratos)
 async function deleteContract(id: string): Promise<void> {
   const { error } = await supabase
-    .from('contracts')
+    .from('contratos')
     .delete()
     .eq('id', id)
 

@@ -15,6 +15,10 @@ import Financeiro from '@/pages/Financeiro'
 import PerfilPublico from '@/pages/PerfilPublico'
 import Perfil from '@/pages/Perfil'
 import Configuracoes from '@/pages/Configuracoes'
+import PublicProfileView from '@/pages/PublicProfileView'
+import Ajuda from '@/pages/Ajuda'
+import Termos from '@/pages/Termos'
+import Privacidade from '@/pages/Privacidade'
 
 function App() {
   return (
@@ -24,10 +28,18 @@ function App() {
         {/* Landing Page Publica */}
         <Route path="/" element={<Landing />} />
 
+        {/* Perfil Publico - Vitrine */}
+        <Route path="/p/:slug" element={<PublicProfileView />} />
+
         {/* Autenticacao */}
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Signup />} />
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+
+        {/* Paginas Institucionais */}
+        <Route path="/ajuda" element={<Ajuda />} />
+        <Route path="/termos" element={<Termos />} />
+        <Route path="/privacidade" element={<Privacidade />} />
 
         {/* Area Logada - Protegida */}
         <Route element={<PrivateRoute />}>

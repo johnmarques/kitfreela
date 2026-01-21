@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { youtubeToEmbed, whatsappToLink } from '@/lib/utils'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { useFreelancerContext } from '@/contexts/FreelancerContext'
 
 interface PerfilPublicoData {
   nomeProfissional: string
@@ -19,8 +20,6 @@ interface PerfilPublicoData {
   imagens: string[]
   publicado: boolean
 }
-
-const STORAGE_KEY = 'kitfreela_perfil_publico'
 
 const defaultData: PerfilPublicoData = {
   nomeProfissional: '',
@@ -35,55 +34,53 @@ const defaultData: PerfilPublicoData = {
 }
 
 export default function PerfilPublico() {
+  const { freelancerId, isLoading: freelancerLoading } = useFreelancerContext()
   const [data, setData] = useState<PerfilPublicoData>(defaultData)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  // Carrega dados ao montar
+  // Carrega dados quando freelancerId estiver disponivel
   useEffect(() => {
-    loadData()
-  }, [])
+    if (!freelancerLoading && freelancerId) {
+      loadData()
+    }
+  }, [freelancerId, freelancerLoading])
 
   const loadData = async () => {
-    // Tenta carregar do Supabase se configurado
-    if (isSupabaseConfigured()) {
+    // Tenta carregar do Supabase se configurado e freelancerId disponivel
+    if (isSupabaseConfigured() && freelancerId) {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { data: perfilData } = await supabase
-            .from('perfis_publicos')
-            .select('*')
-            .eq('user_id', user.id)
-            .single()
+        const { data: perfilData, error } = await supabase
+          .from('perfis_publicos')
+          .select('*')
+          .eq('freelancer_id', freelancerId)
+          .single()
 
-          if (perfilData) {
-            setData({
-              nomeProfissional: perfilData.nome_profissional || '',
-              especialidade: perfilData.especialidade || '',
-              miniBio: perfilData.mini_bio || '',
-              urlFoto: perfilData.url_foto || '',
-              whatsapp: perfilData.whatsapp || '',
-              urlPerfil: perfilData.url_perfil || '',
-              linkVideo: perfilData.link_video || '',
-              imagens: perfilData.imagens || ['', '', '', '', '', ''],
-              publicado: perfilData.publicado || false,
-            })
-            return
-          }
+        if (error && error.code !== 'PGRST116') {
+          console.error('Erro ao carregar perfil publico:', error)
+        }
+
+        if (perfilData) {
+          // Converte array de imagens do banco (pode ser null ou array incompleto)
+          const imagens = Array.isArray(perfilData.imagens)
+            ? [...perfilData.imagens, '', '', '', '', '', ''].slice(0, 6)
+            : ['', '', '', '', '', '']
+
+          setData({
+            nomeProfissional: perfilData.nome_profissional || '',
+            especialidade: perfilData.especialidade || '',
+            miniBio: perfilData.mini_bio || '',
+            urlFoto: perfilData.url_foto || '',
+            whatsapp: perfilData.whatsapp || '',
+            urlPerfil: perfilData.url_perfil || '',
+            linkVideo: perfilData.link_video || '',
+            imagens,
+            publicado: perfilData.publicado || false,
+          })
+          return
         }
       } catch (error) {
-        console.warn('Erro ao carregar do Supabase, usando localStorage:', error)
-      }
-    }
-
-    // Fallback para localStorage
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
-        const parsed = JSON.parse(stored)
-        setData({ ...defaultData, ...parsed })
-      } catch {
-        console.warn('Erro ao parsear dados do localStorage')
+        console.warn('Erro ao carregar do Supabase:', error)
       }
     }
   }
@@ -117,43 +114,65 @@ export default function PerfilPublico() {
       whatsapp: whatsappLink || '',
     }
 
-    // Tenta salvar no Supabase se configurado
+    // Verifica se o usuario esta identificado
+    if (!freelancerId) {
+      setMessage({ type: 'error', text: 'Erro: Usuario nao identificado.' })
+      setSaving(false)
+      return
+    }
+
+    // Tenta salvar no Supabase
     if (isSupabaseConfigured()) {
       try {
-        const { data: { user } } = await supabase.auth.getUser()
-        if (user) {
-          const { error } = await supabase
-            .from('perfis_publicos')
-            .upsert({
-              user_id: user.id,
-              nome_profissional: dataToSave.nomeProfissional,
-              especialidade: dataToSave.especialidade,
-              mini_bio: dataToSave.miniBio,
-              url_foto: dataToSave.urlFoto,
-              whatsapp: dataToSave.whatsapp,
-              url_perfil: dataToSave.urlPerfil,
-              link_video: dataToSave.linkVideo,
-              imagens: dataToSave.imagens,
-              publicado: dataToSave.publicado,
-              updated_at: new Date().toISOString(),
-            })
+        // Filtra imagens vazias mas mantém array para salvar
+        const imagensParaSalvar = dataToSave.imagens.filter((img: string) => img.trim() !== '')
 
-          if (error) throw error
+        // Sanitiza o slug do perfil
+        const slugSanitizado = dataToSave.urlPerfil.toLowerCase().replace(/[^a-z0-9-]/g, '')
 
-          setData(dataToSave)
-          setMessage({ type: 'success', text: 'Perfil salvo com sucesso!' })
-          setSaving(false)
-          return
+        const { error } = await supabase
+          .from('perfis_publicos')
+          .upsert({
+            freelancer_id: freelancerId,
+            nome_profissional: dataToSave.nomeProfissional,
+            especialidade: dataToSave.especialidade,
+            mini_bio: dataToSave.miniBio,
+            url_foto: dataToSave.urlFoto,
+            whatsapp: dataToSave.whatsapp,
+            url_perfil: slugSanitizado,
+            link_video: dataToSave.linkVideo,
+            imagens: imagensParaSalvar,
+            publicado: dataToSave.publicado,
+            updated_at: new Date().toISOString(),
+          }, {
+            onConflict: 'freelancer_id',
+          })
+
+        if (error) {
+          console.error('Erro detalhado:', error)
+          // Verifica se é erro de slug duplicado
+          if (error.code === '23505' && error.message.includes('url_perfil')) {
+            setMessage({ type: 'error', text: 'Esta URL de perfil ja esta em uso. Escolha outra.' })
+            setSaving(false)
+            return
+          }
+          throw error
         }
+
+        // Atualiza o estado local com o slug sanitizado
+        setData({ ...dataToSave, urlPerfil: slugSanitizado })
+        setMessage({ type: 'success', text: 'Perfil salvo com sucesso!' })
+        setSaving(false)
+        return
       } catch (error) {
-        console.warn('Erro ao salvar no Supabase, usando localStorage:', error)
+        console.error('Erro ao salvar no Supabase:', error)
+        setMessage({ type: 'error', text: 'Erro ao salvar perfil. Tente novamente.' })
+        setSaving(false)
+        return
       }
     }
 
-    // Fallback para localStorage
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToSave))
-    setData(dataToSave)
-    setMessage({ type: 'success', text: 'Perfil salvo localmente!' })
+    setMessage({ type: 'error', text: 'Erro: Banco de dados nao configurado.' })
     setSaving(false)
   }
 
@@ -242,7 +261,7 @@ export default function PerfilPublico() {
                 <p className="text-right text-xs text-gray-500">{data.miniBio.length}/200</p>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-2 ">
                 <Label htmlFor="urlFoto">URL da Foto</Label>
                 <Input
                   id="urlFoto"
@@ -365,7 +384,7 @@ export default function PerfilPublico() {
               </CardTitle>
               <p className="text-xs text-gray-500">Controle a visibilidade do seu perfil</p>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4"> 
               <div className="flex items-start space-x-3">
                 <Checkbox
                   id="publicarPerfil"
@@ -384,6 +403,29 @@ export default function PerfilPublico() {
                   </p>
                 </div>
               </div>
+
+              {/* Link do perfil público */}
+              {data.publicado && data.urlPerfil && (
+                <div className="pt-3 border-t border-gray-100">
+                  <p className="text-xs text-gray-500 mb-2">Seu perfil está acessível em:</p>
+                  <a
+                    href={`/p/${data.urlPerfil.toLowerCase().replace(/[^a-z0-9-]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 hover:underline"
+                  >
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"
+                      />
+                    </svg>
+                    /p/{data.urlPerfil.toLowerCase().replace(/[^a-z0-9-]/g, '')}
+                  </a>
+                </div>
+              )}
             </CardContent>
           </Card>
         </div>

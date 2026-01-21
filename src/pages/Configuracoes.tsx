@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -11,14 +12,239 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { useSettings, useSaveSettings, UpdateSettingsPayload } from '@/hooks/useSettings'
+import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import type { ValidityUnit, DateFormat } from '@/types'
 import { DEFAULT_USER_SETTINGS } from '@/types'
 
 export default function Configuracoes() {
+  const navigate = useNavigate()
+  const { user, signOut } = useAuth()
   const { data: settings, isLoading, error } = useSettings()
   const { mutate: saveSettings, isPending: isSaving } = useSaveSettings()
+
+  // Estados para troca de senha
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+
+  // Estados para exportação de dados
+  const [isExporting, setIsExporting] = useState(false)
+
+  // Estados para exclusão de conta
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+  const [deleteConfirmPassword, setDeleteConfirmPassword] = useState('')
+  const [isDeleting, setIsDeleting] = useState(false)
+
+  // Função para trocar senha
+  const handleChangePassword = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      toast.error('Preencha todos os campos de senha')
+      return
+    }
+
+    if (newPassword.length < 6) {
+      toast.error('A nova senha deve ter pelo menos 6 caracteres')
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast.error('As senhas nao coincidem')
+      return
+    }
+
+    setIsChangingPassword(true)
+
+    try {
+      // Primeiro verifica a senha atual fazendo login novamente
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user?.email || '',
+        password: currentPassword,
+      })
+
+      if (signInError) {
+        toast.error('Senha atual incorreta')
+        setIsChangingPassword(false)
+        return
+      }
+
+      // Atualiza a senha
+      const { error: updateError } = await supabase.auth.updateUser({
+        password: newPassword,
+      })
+
+      if (updateError) {
+        toast.error('Erro ao alterar senha: ' + updateError.message)
+        setIsChangingPassword(false)
+        return
+      }
+
+      toast.success('Senha alterada com sucesso!')
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err) {
+      console.error('Erro ao alterar senha:', err)
+      toast.error('Erro ao alterar senha. Tente novamente.')
+    } finally {
+      setIsChangingPassword(false)
+    }
+  }
+
+  // Função para exportar dados
+  const handleExportData = async () => {
+    if (!user?.id) {
+      toast.error('Usuario nao autenticado')
+      return
+    }
+
+    setIsExporting(true)
+
+    try {
+      // Buscar todos os dados do usuario
+      const [
+        { data: freelancer },
+        { data: proposals },
+        { data: contracts },
+        { data: clients },
+        { data: financeiro },
+        { data: userSettings },
+      ] = await Promise.all([
+        supabase.from('freelancers').select('*').eq('user_id', user.id).single(),
+        supabase.from('proposals').select('*').eq('user_id', user.id),
+        supabase.from('contracts').select('*').eq('user_id', user.id),
+        supabase.from('clients').select('*').eq('freelancer_id', user.id),
+        supabase.from('registros_financeiros').select('*').eq('user_id', user.id),
+        supabase.from('user_settings').select('*').eq('user_id', user.id).single(),
+      ])
+
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        user: {
+          id: user.id,
+          email: user.email,
+        },
+        freelancer,
+        proposals: proposals || [],
+        contracts: contracts || [],
+        clients: clients || [],
+        financeiro: financeiro || [],
+        settings: userSettings,
+      }
+
+      // Criar e baixar arquivo JSON
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `kitfreela-dados-${new Date().toISOString().split('T')[0]}.json`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      toast.success('Dados exportados com sucesso!')
+    } catch (err) {
+      console.error('Erro ao exportar dados:', err)
+      toast.error('Erro ao exportar dados. Tente novamente.')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
+  // Função para excluir conta
+  const handleDeleteAccount = async () => {
+    if (!deleteConfirmPassword) {
+      toast.error('Digite sua senha para confirmar')
+      return
+    }
+
+    if (!user?.id) {
+      toast.error('Usuario nao autenticado')
+      return
+    }
+
+    setIsDeleting(true)
+
+    try {
+      // Verifica a senha
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email || '',
+        password: deleteConfirmPassword,
+      })
+
+      if (signInError) {
+        toast.error('Senha incorreta')
+        setIsDeleting(false)
+        return
+      }
+
+      // Chamar funcao RPC para excluir conta completamente
+      // Esta funcao exclui todos os dados E o usuario do auth.users
+      const { error: rpcError } = await supabase.rpc('delete_user_account')
+
+      if (rpcError) {
+        console.error('[DeleteAccount] Erro na funcao RPC:', rpcError)
+
+        // Se a funcao RPC nao existir, tenta excluir manualmente os dados
+        if (rpcError.code === 'PGRST202' || rpcError.message?.includes('function')) {
+          console.log('[DeleteAccount] Funcao RPC nao encontrada, excluindo dados manualmente...')
+
+          // Buscar o freelancer_id do usuario
+          const { data: freelancer } = await supabase
+            .from('freelancers')
+            .select('id')
+            .eq('user_id', user.id)
+            .single()
+
+          const freelancerId = freelancer?.id
+
+          // Excluir dados relacionados (em ordem de dependencias)
+          await supabase.from('registros_financeiros').delete().eq('user_id', user.id)
+          await supabase.from('contracts').delete().eq('user_id', user.id)
+          if (freelancerId) {
+            await supabase.from('propostas').delete().eq('freelancer_id', freelancerId)
+            await supabase.from('clients').delete().eq('freelancer_id', freelancerId)
+          }
+          await supabase.from('user_settings').delete().eq('user_id', user.id)
+          await supabase.from('perfis_publicos').delete().eq('user_id', user.id)
+          await supabase.from('freelancers').delete().eq('user_id', user.id)
+
+          // Fazer logout
+          await signOut()
+
+          toast.warning('Dados excluidos. Para remover completamente a conta, execute a migracao SQL.')
+          navigate('/')
+          return
+        }
+
+        throw rpcError
+      }
+
+      // Fazer logout (a sessao sera invalidada automaticamente)
+      await signOut()
+
+      toast.success('Conta excluida com sucesso')
+      navigate('/')
+    } catch (err) {
+      console.error('Erro ao excluir conta:', err)
+      toast.error('Erro ao excluir conta. Tente novamente.')
+    } finally {
+      setIsDeleting(false)
+      setShowDeleteDialog(false)
+    }
+  }
 
   // Estado local para o formulario
   const [formData, setFormData] = useState<UpdateSettingsPayload>({
@@ -296,30 +522,57 @@ export default function Configuracoes() {
         <CardContent className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="senhaAtual">Alterar senha</Label>
-            <Input id="senhaAtual" type="password" placeholder="Senha atual" />
+            <Input
+              id="senhaAtual"
+              type="password"
+              placeholder="Senha atual"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              disabled={isChangingPassword}
+            />
           </div>
 
           <div className="space-y-2">
-            <Input id="novaSenha" type="password" placeholder="Nova senha" />
+            <Input
+              id="novaSenha"
+              type="password"
+              placeholder="Nova senha (minimo 6 caracteres)"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              disabled={isChangingPassword}
+            />
           </div>
 
           <div className="space-y-2">
-            <Input id="confirmarSenha" type="password" placeholder="Confirmar nova senha" />
+            <Input
+              id="confirmarSenha"
+              type="password"
+              placeholder="Confirmar nova senha"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              disabled={isChangingPassword}
+            />
           </div>
 
-          <Button variant="outline">Alterar Senha</Button>
+          <Button
+            variant="outline"
+            onClick={handleChangePassword}
+            disabled={isChangingPassword}
+          >
+            {isChangingPassword ? 'Alterando...' : 'Alterar Senha'}
+          </Button>
 
           <div className="border-t pt-4">
             <div className="flex items-start space-x-3">
-              <Checkbox id="autenticacaoDoisFatores" />
+              <Checkbox id="autenticacaoDoisFatores" disabled />
               <div className="space-y-1">
                 <label
                   htmlFor="autenticacaoDoisFatores"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  className="text-sm font-medium leading-none text-gray-400"
                 >
                   Autenticacao de dois fatores (em breve)
                 </label>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-gray-400">
                   Adicione uma camada extra de seguranca a sua conta
                 </p>
               </div>
@@ -346,7 +599,12 @@ export default function Configuracoes() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Button variant="outline" className="w-full md:w-auto">
+            <Button
+              variant="outline"
+              className="w-full md:w-auto"
+              onClick={handleExportData}
+              disabled={isExporting}
+            >
               <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -355,7 +613,7 @@ export default function Configuracoes() {
                   d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
                 />
               </svg>
-              Exportar meus dados
+              {isExporting ? 'Exportando...' : 'Exportar meus dados'}
             </Button>
             <p className="mt-2 text-xs text-gray-500">
               Baixe todos os seus dados em formato JSON
@@ -363,7 +621,11 @@ export default function Configuracoes() {
           </div>
 
           <div className="border-t pt-4">
-            <Button variant="outline" className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 md:w-auto">
+            <Button
+              variant="outline"
+              className="w-full text-red-600 hover:bg-red-50 hover:text-red-700 md:w-auto"
+              onClick={() => setShowDeleteDialog(true)}
+            >
               <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   strokeLinecap="round"
@@ -380,6 +642,56 @@ export default function Configuracoes() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Dialog de confirmacao para excluir conta */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">Excluir conta</DialogTitle>
+            <DialogDescription>
+              Esta acao e irreversivel. Todos os seus dados serao permanentemente excluidos,
+              incluindo propostas, contratos, clientes e registros financeiros.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="rounded-md bg-red-50 border border-red-200 p-4">
+              <p className="text-sm text-red-700">
+                Para confirmar a exclusao da sua conta, digite sua senha abaixo.
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="deletePassword">Senha</Label>
+              <Input
+                id="deletePassword"
+                type="password"
+                placeholder="Digite sua senha"
+                value={deleteConfirmPassword}
+                onChange={(e) => setDeleteConfirmPassword(e.target.value)}
+                disabled={isDeleting}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false)
+                setDeleteConfirmPassword('')
+              }}
+              disabled={isDeleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={isDeleting || !deleteConfirmPassword}
+            >
+              {isDeleting ? 'Excluindo...' : 'Excluir minha conta'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Sobre */}
       <Card>
@@ -406,14 +718,26 @@ export default function Configuracoes() {
             <span className="font-medium">Janeiro 2026</span>
           </div>
           <div className="border-t pt-3">
-            <div className="flex gap-3">
-              <Button variant="link" className="h-auto p-0 text-sm">
+            <div className="flex gap-3 flex-wrap">
+              <Button
+                variant="link"
+                className="h-auto p-0 text-sm"
+                onClick={() => navigate('/termos')}
+              >
                 Termos de Uso
               </Button>
-              <Button variant="link" className="h-auto p-0 text-sm">
+              <Button
+                variant="link"
+                className="h-auto p-0 text-sm"
+                onClick={() => navigate('/privacidade')}
+              >
                 Politica de Privacidade
               </Button>
-              <Button variant="link" className="h-auto p-0 text-sm">
+              <Button
+                variant="link"
+                className="h-auto p-0 text-sm"
+                onClick={() => navigate('/ajuda')}
+              >
                 Suporte
               </Button>
             </div>

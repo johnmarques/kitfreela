@@ -55,3 +55,7 @@ input::placeholder,textarea::placeholder{
     opacity:1;
     color:#5a9384/*#9ca3af*/;
 }
+.border-raidius-full {
+  border-radius: calc(var(--radius) + 100%) !important;
+   border-radius: 100% !important;
+}

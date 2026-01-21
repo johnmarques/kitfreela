@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
-import type { DashboardMetrics, Contract, FinancialRecord, ProposalStatus } from '@/types'
+import type { DashboardMetrics, FinancialRecord, ProposalStatus, ContractStatus } from '@/types'
 
 // Tipo interno para proposta do banco (colunas em português)
 interface PropostaDB {
@@ -10,6 +10,43 @@ interface PropostaDB {
   valor: number
   status: ProposalStatus
   created_at: string
+}
+
+// Tipo interno para contrato do banco (colunas em português)
+interface ContratoSimples {
+  id: string
+  valor: number
+  status: ContractStatus
+}
+
+// Tipo interno para registro financeiro do banco (colunas em português)
+interface RegistroFinanceiroDB {
+  id: string
+  freelancer_id: string
+  contrato_id?: string
+  descricao: string
+  valor: number
+  data_vencimento?: string
+  data_recebimento?: string
+  recebido: boolean
+  observacoes?: string
+  created_at: string
+}
+
+// Converter registro do banco para FinancialRecord
+function toFinancialRecord(record: RegistroFinanceiroDB): FinancialRecord {
+  return {
+    id: record.id,
+    user_id: record.freelancer_id,
+    contract_id: record.contrato_id,
+    description: record.descricao,
+    amount: record.valor,
+    due_date: record.data_vencimento,
+    received_date: record.data_recebimento,
+    is_received: record.recebido,
+    notes: record.observacoes,
+    created_at: record.created_at,
+  }
 }
 
 // Chaves para localStorage (fallback)
@@ -32,7 +69,7 @@ function getFromStorage<T>(key: string): T[] {
 // Função para calcular métricas a partir dos dados
 function calculateMetrics(
   propostas: PropostaDB[],
-  contracts: Contract[],
+  contratos: ContratoSimples[],
   financial: FinancialRecord[]
 ): DashboardMetrics {
   // Propostas por status
@@ -59,19 +96,19 @@ function calculateMetrics(
     ? Math.round((totalFechado / totalProposto) * 100)
     : 0
 
-  // Contratos por status
-  const contratosCriados = contracts.length
-  const contratosAtivos = contracts.filter(c => c.status === 'ativo').length
-  const contratosFinalizados = contracts.filter(c => c.status === 'finalizado').length
+  // Contratos por status (usando 'valor' da tabela contratos)
+  const contratosCriados = contratos.length
+  const contratosAtivos = contratos.filter(c => c.status === 'ativo').length
+  const contratosFinalizados = contratos.filter(c => c.status === 'finalizado').length
+  const valorContratos = contratos.reduce((sum, c) => sum + (c.valor || 0), 0)
 
   // Financeiro
+  // jaRecebido = soma dos pagamentos registrados como recebidos
   const jaRecebido = financial
     .filter(f => f.is_received)
     .reduce((sum, f) => sum + (f.amount || 0), 0)
-  const aReceber = financial
-    .filter(f => !f.is_received)
-    .reduce((sum, f) => sum + (f.amount || 0), 0)
-  const valorContratos = contracts.reduce((sum, c) => sum + (c.value || 0), 0)
+  // aReceber = valor total dos contratos - valor ja recebido
+  const aReceber = Math.max(0, valorContratos - jaRecebido)
 
   return {
     proposalsEnviadas,
@@ -93,26 +130,30 @@ function calculateMetrics(
     aReceber,
     valorContratos,
     totalPropostas: propostas.length,
-    totalContratos: contracts.length,
+    totalContratos: contratos.length,
   }
 }
 
-// Buscar dados do Supabase
+// Buscar dados do Supabase (tabelas em português)
 async function fetchFromSupabase(): Promise<{
   propostas: PropostaDB[]
-  contracts: Contract[]
+  contratos: ContratoSimples[]
   financial: FinancialRecord[]
 }> {
-  const [propostasRes, contractsRes, financialRes] = await Promise.all([
+  const [propostasRes, contratosRes, financialRes] = await Promise.all([
     supabase.from('propostas').select('id, freelancer_id, cliente_nome, valor, status, created_at'),
-    supabase.from('contracts').select('*'),
-    supabase.from('financial_records').select('*'),
+    supabase.from('contratos').select('id, valor, status'),
+    supabase.from('registros_financeiros').select('*'),
   ])
+
+  // Converter registros financeiros do formato do banco para FinancialRecord
+  const financialData = (financialRes.data as RegistroFinanceiroDB[]) || []
+  const financial = financialData.map(toFinancialRecord)
 
   return {
     propostas: (propostasRes.data as PropostaDB[]) || [],
-    contracts: (contractsRes.data as Contract[]) || [],
-    financial: (financialRes.data as FinancialRecord[]) || [],
+    contratos: (contratosRes.data as ContratoSimples[]) || [],
+    financial,
   }
 }
 
@@ -131,13 +172,22 @@ function convertLocalProposal(p: Record<string, unknown>): PropostaDB {
 // Buscar dados do localStorage (fallback)
 function fetchFromLocalStorage(): {
   propostas: PropostaDB[]
-  contracts: Contract[]
+  contratos: ContratoSimples[]
   financial: FinancialRecord[]
 } {
   const rawProposals = getFromStorage<Record<string, unknown>>(STORAGE_KEYS.proposals)
+  const rawContracts = getFromStorage<Record<string, unknown>>(STORAGE_KEYS.contracts)
+
+  // Converter contratos do localStorage para formato simples
+  const contratos: ContratoSimples[] = rawContracts.map(c => ({
+    id: (c.id as string) || '',
+    valor: (c.valor as number) || (c.value as number) || 0,
+    status: (c.status as ContractStatus) || 'rascunho',
+  }))
+
   return {
     propostas: rawProposals.map(convertLocalProposal),
-    contracts: getFromStorage<Contract>(STORAGE_KEYS.contracts),
+    contratos,
     financial: getFromStorage<FinancialRecord>(STORAGE_KEYS.financial),
   }
 }
@@ -146,7 +196,7 @@ function fetchFromLocalStorage(): {
 async function fetchDashboardData(): Promise<DashboardMetrics> {
   let data: {
     propostas: PropostaDB[]
-    contracts: Contract[]
+    contratos: ContratoSimples[]
     financial: FinancialRecord[]
   }
 
@@ -161,7 +211,7 @@ async function fetchDashboardData(): Promise<DashboardMetrics> {
     data = fetchFromLocalStorage()
   }
 
-  return calculateMetrics(data.propostas, data.contracts, data.financial)
+  return calculateMetrics(data.propostas, data.contratos, data.financial)
 }
 
 // Hook principal

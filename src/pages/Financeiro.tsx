@@ -1,9 +1,11 @@
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Select,
@@ -19,9 +21,104 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import { useFreelancerContext } from '@/contexts/FreelancerContext'
+import {
+  useContratosFin,
+  useResumoFinanceiro,
+  useRegistrosFinanceiros,
+  useCreateRegistro,
+  useMarcarRecebido,
+} from '@/hooks/useFinanceiro'
+
+// Formatar valor como moeda
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }).format(value)
+}
+
+// Formatar data
+function formatDate(dateStr: string | undefined): string {
+  if (!dateStr) return '-'
+  return new Date(dateStr).toLocaleDateString('pt-BR')
+}
 
 export default function Financeiro() {
+  const { freelancerId, isLoading: freelancerLoading } = useFreelancerContext()
+  const { data: contratos, isLoading: contratosLoading } = useContratosFin(freelancerId)
+  const { data: resumo, isLoading: resumoLoading } = useResumoFinanceiro(freelancerId)
+  const { data: registros, isLoading: registrosLoading } = useRegistrosFinanceiros(freelancerId)
+  const createRegistro = useCreateRegistro()
+  const marcarRecebido = useMarcarRecebido()
+
   const [open, setOpen] = useState(false)
+  const [formData, setFormData] = useState({
+    contrato_id: '',
+    valor: '',
+    data_recebimento: new Date().toISOString().split('T')[0],
+    forma_pagamento: '',
+    observacoes: '',
+  })
+
+  const isLoading = freelancerLoading || contratosLoading || resumoLoading || registrosLoading
+
+  const handleSubmit = async () => {
+    if (!freelancerId) return
+
+    if (!formData.contrato_id || !formData.valor) {
+      toast.error('Preencha os campos obrigatorios')
+      return
+    }
+
+    const contratoSelecionado = contratos?.find((c) => c.id === formData.contrato_id)
+
+    try {
+      await createRegistro.mutateAsync({
+        freelancerId,
+        contrato_id: formData.contrato_id,
+        descricao: `Pagamento - ${contratoSelecionado?.servico_nome || 'Contrato'}`,
+        valor: parseFloat(formData.valor.replace(',', '.')),
+        data_recebimento: formData.data_recebimento,
+        recebido: true,
+        forma_pagamento: formData.forma_pagamento || undefined,
+        observacoes: formData.observacoes || undefined,
+      })
+
+      toast.success('Pagamento registrado com sucesso')
+      setOpen(false)
+      setFormData({
+        contrato_id: '',
+        valor: '',
+        data_recebimento: new Date().toISOString().split('T')[0],
+        forma_pagamento: '',
+        observacoes: '',
+      })
+    } catch (err) {
+      console.error('[Financeiro] Erro ao registrar pagamento:', err)
+      // Verifica se é erro de tabela inexistente
+      const errorObj = err as { code?: string; message?: string }
+      if (errorObj.code === '42P01') {
+        toast.error('Tabela de registros financeiros nao existe. Execute a migracao.')
+      } else if (errorObj.message) {
+        toast.error(`Erro: ${errorObj.message}`)
+      } else {
+        toast.error('Erro ao registrar pagamento')
+      }
+    }
+  }
+
+  const handleToggleRecebido = async (id: string, recebido: boolean) => {
+    try {
+      await marcarRecebido.mutateAsync({
+        id,
+        recebido: !recebido,
+      })
+      toast.success(recebido ? 'Marcado como pendente' : 'Marcado como recebido')
+    } catch {
+      toast.error('Erro ao atualizar status')
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -36,7 +133,7 @@ export default function Financeiro() {
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button>
+            <Button disabled={!contratos || contratos.length === 0}>
               <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
@@ -52,13 +149,19 @@ export default function Financeiro() {
                 <Label htmlFor="contrato">
                   Contrato <span className="text-red-500">*</span>
                 </Label>
-                <Select>
+                <Select
+                  value={formData.contrato_id}
+                  onValueChange={(v) => setFormData({ ...formData, contrato_id: v })}
+                >
                   <SelectTrigger id="contrato">
                     <SelectValue placeholder="Selecione o contrato..." />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="contrato1">Contrato 1</SelectItem>
-                    <SelectItem value="contrato2">Contrato 2</SelectItem>
+                    {contratos?.map((contrato) => (
+                      <SelectItem key={contrato.id} value={contrato.id}>
+                        {contrato.servico_nome} - {contrato.cliente_nome} ({formatCurrency(contrato.valor)})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -67,37 +170,53 @@ export default function Financeiro() {
                 <Label htmlFor="valorRecebido">
                   Valor recebido <span className="text-red-500">*</span>
                 </Label>
-                <Input id="valorRecebido" placeholder="R$ 0,00" />
+                <Input
+                  id="valorRecebido"
+                  placeholder="0,00"
+                  value={formData.valor}
+                  onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="dataRecebimento">
                   Data do recebimento <span className="text-red-500">*</span>
                 </Label>
-                <Input id="dataRecebimento" type="date" defaultValue="2026-01-07" />
+                <Input
+                  id="dataRecebimento"
+                  type="date"
+                  value={formData.data_recebimento}
+                  onChange={(e) => setFormData({ ...formData, data_recebimento: e.target.value })}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="formaPagamento">Forma de pagamento</Label>
-                <Select>
+                <Select
+                  value={formData.forma_pagamento}
+                  onValueChange={(v) => setFormData({ ...formData, forma_pagamento: v })}
+                >
                   <SelectTrigger id="formaPagamento">
                     <SelectValue placeholder="Selecione..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pix">PIX</SelectItem>
-                    <SelectItem value="transferencia">Transferência bancária</SelectItem>
+                    <SelectItem value="transferencia">Transferencia bancaria</SelectItem>
                     <SelectItem value="boleto">Boleto</SelectItem>
-                    <SelectItem value="cartao">Cartão de crédito</SelectItem>
+                    <SelectItem value="cartao">Cartao de credito</SelectItem>
+                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="observacao">Observação</Label>
+                <Label htmlFor="observacao">Observacao</Label>
                 <Textarea
                   id="observacao"
                   placeholder="Alguma nota sobre este pagamento..."
                   rows={3}
+                  value={formData.observacoes}
+                  onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
                 />
               </div>
 
@@ -105,8 +224,12 @@ export default function Financeiro() {
                 <Button variant="outline" className="flex-1" onClick={() => setOpen(false)}>
                   Cancelar
                 </Button>
-                <Button className="flex-1" onClick={() => setOpen(false)}>
-                  Salvar pagamento
+                <Button
+                  className="flex-1"
+                  onClick={handleSubmit}
+                  disabled={createRegistro.isPending}
+                >
+                  {createRegistro.isPending ? 'Salvando...' : 'Salvar pagamento'}
                 </Button>
               </div>
             </div>
@@ -123,6 +246,12 @@ export default function Financeiro() {
             </svg>
             Contas a Receber
           </TabsTrigger>
+          <TabsTrigger value="pagamentos" className="flex items-center gap-2">
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+            </svg>
+            Pagamentos
+          </TabsTrigger>
           <TabsTrigger value="resumo" className="flex items-center gap-2">
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
@@ -131,34 +260,169 @@ export default function Financeiro() {
           </TabsTrigger>
         </TabsList>
 
+        {/* Tab: Contas a Receber (Contratos) */}
         <TabsContent value="contas" className="space-y-4">
-          <p className="text-sm text-gray-500">0 contratos cadastrados</p>
+          <p className="text-sm text-gray-500">
+            {isLoading ? 'Carregando...' : `${contratos?.length || 0} contrato(s) cadastrado(s)`}
+          </p>
 
-          {/* Empty State */}
-          <Card>
-            <CardContent className="flex flex-col items-center justify-center py-16">
-              <svg className="mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 className="mb-2 text-lg font-medium text-gray-900">Nenhum contrato cadastrado.</h3>
-              <p className="text-sm text-gray-500">Crie contratos para começar a controlar seus recebimentos.</p>
-            </CardContent>
-          </Card>
+          {isLoading ? (
+            <Card>
+              <CardContent className="py-8 text-center text-gray-500">
+                Carregando contratos...
+              </CardContent>
+            </Card>
+          ) : !contratos || contratos.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <svg className="mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <h3 className="mb-2 text-lg font-medium text-gray-900">Nenhum contrato cadastrado.</h3>
+                <p className="text-sm text-gray-500">Crie contratos para comecar a controlar seus recebimentos.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {contratos.map((contrato) => {
+                // Calcular pagamentos do contrato
+                const pagamentosContrato = registros?.filter(
+                  (r) => r.contract_id === contrato.id && r.is_received
+                ) || []
+                const totalPago = pagamentosContrato.reduce((sum, r) => sum + r.amount, 0)
+                const percentPago = contrato.valor > 0 ? Math.round((totalPago / contrato.valor) * 100) : 0
+
+                return (
+                  <Card key={contrato.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-medium text-gray-900">{contrato.servico_nome}</h3>
+                            <Badge variant={contrato.status === 'ativo' ? 'default' : 'secondary'}>
+                              {contrato.status}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-500">{contrato.cliente_nome}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-lg font-semibold text-gray-900">
+                            {formatCurrency(contrato.valor)}
+                          </p>
+                          <p className="text-sm text-gray-500">
+                            Recebido: {formatCurrency(totalPago)} ({percentPago}%)
+                          </p>
+                        </div>
+                      </div>
+                      {/* Barra de progresso */}
+                      <div className="mt-3 h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className={`h-full rounded-full ${
+                            percentPago >= 100
+                              ? 'bg-green-500'
+                              : percentPago > 0
+                              ? 'bg-blue-500'
+                              : 'bg-gray-200'
+                          }`}
+                          style={{ width: `${Math.min(percentPago, 100)}%` }}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
         </TabsContent>
 
+        {/* Tab: Pagamentos */}
+        <TabsContent value="pagamentos" className="space-y-4">
+          <p className="text-sm text-gray-500">
+            {isLoading ? 'Carregando...' : `${registros?.length || 0} pagamento(s) registrado(s)`}
+          </p>
+
+          {isLoading ? (
+            <Card>
+              <CardContent className="py-8 text-center text-gray-500">
+                Carregando pagamentos...
+              </CardContent>
+            </Card>
+          ) : !registros || registros.length === 0 ? (
+            <Card>
+              <CardContent className="flex flex-col items-center justify-center py-16">
+                <svg className="mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <h3 className="mb-2 text-lg font-medium text-gray-900">Nenhum pagamento registrado.</h3>
+                <p className="text-sm text-gray-500">Registre pagamentos para acompanhar seus recebimentos.</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {registros.map((registro) => {
+                const contrato = contratos?.find((c) => c.id === registro.contract_id)
+                return (
+                  <Card key={registro.id} className="hover:shadow-md transition-shadow">
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h3 className="font-medium text-gray-900">{registro.description}</h3>
+                            <Badge variant={registro.is_received ? 'default' : 'secondary'}>
+                              {registro.is_received ? 'Recebido' : 'Pendente'}
+                            </Badge>
+                          </div>
+                          <p className="text-sm text-gray-500">
+                            {contrato?.cliente_nome || 'Contrato removido'}
+                            {registro.payment_method && ` - ${registro.payment_method.toUpperCase()}`}
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {registro.is_received
+                              ? `Recebido em ${formatDate(registro.received_date)}`
+                              : registro.due_date
+                              ? `Vencimento: ${formatDate(registro.due_date)}`
+                              : 'Sem data de vencimento'}
+                          </p>
+                        </div>
+                        <div className="text-right flex items-center gap-4">
+                          <div>
+                            <p className={`text-lg font-semibold ${registro.is_received ? 'text-green-600' : 'text-gray-900'}`}>
+                              {formatCurrency(registro.amount)}
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleToggleRecebido(registro.id, registro.is_received)}
+                          >
+                            {registro.is_received ? 'Desfazer' : 'Receber'}
+                          </Button>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
+          )}
+        </TabsContent>
+
+        {/* Tab: Resumo */}
         <TabsContent value="resumo" className="space-y-6">
           {/* Cards de Resumo */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
             <Card className='shadow-lg'>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-md bg-gray-100 p-2">
-                    <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="rounded-md bg-blue-100 p-2">
+                    <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xl font-semibold text-gray-900">R$ 0,00</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {formatCurrency(resumo?.totalAReceber || 0)}
+                    </p>
                     <p className="text-xs text-gray-500">Total a receber</p>
                   </div>
                 </div>
@@ -168,13 +432,15 @@ export default function Financeiro() {
             <Card className='shadow-lg'>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-md bg-gray-100 p-2">
-                    <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="rounded-md bg-green-100 p-2">
+                    <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xl font-semibold text-gray-900">R$ 0,00</p>
+                    <p className="text-xl font-semibold text-green-600">
+                      {formatCurrency(resumo?.totalRecebido || 0)}
+                    </p>
                     <p className="text-xs text-gray-500">Total recebido</p>
                   </div>
                 </div>
@@ -190,7 +456,9 @@ export default function Financeiro() {
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xl font-semibold text-gray-900">R$ 0,00</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {formatCurrency(resumo?.totalFaturado || 0)}
+                    </p>
                     <p className="text-xs text-gray-500">Total faturado</p>
                   </div>
                 </div>
@@ -200,21 +468,23 @@ export default function Financeiro() {
             <Card className='shadow-lg'>
               <CardContent className="pt-6">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-md bg-gray-100 p-2">
-                    <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="rounded-md bg-purple-100 p-2">
+                    <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xl font-semibold text-gray-900">R$ 0,00</p>
-                    <p className="text-xs text-gray-500">Descontos concedidos</p>
+                    <p className="text-xl font-semibold text-gray-900">
+                      {resumo?.totalContratos || 0}
+                    </p>
+                    <p className="text-xs text-gray-500">Contratos</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Cards de Informação */}
+          {/* Cards de Informacao */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <Card>
               <CardHeader>
@@ -226,7 +496,7 @@ export default function Financeiro() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-semibold text-gray-900">0</p>
+                <p className="text-3xl font-semibold text-gray-900">{resumo?.clientesAtivos || 0}</p>
                 <p className="text-sm text-gray-500">clientes com contratos ativos</p>
               </CardContent>
             </Card>
@@ -237,30 +507,30 @@ export default function Financeiro() {
                   <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  Contratos
+                  Contratos Ativos
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-semibold text-gray-900">0</p>
-                <p className="text-sm text-gray-500">contratos registrados</p>
+                <p className="text-3xl font-semibold text-gray-900">{resumo?.contratosAtivos || 0}</p>
+                <p className="text-sm text-gray-500">contratos em andamento</p>
               </CardContent>
             </Card>
           </div>
 
-          {/* Situação dos Contratos */}
+          {/* Situacao dos Contratos */}
           <div>
-            <h2 className="mb-4 text-lg font-semibold text-gray-900">Situação dos Contratos</h2>
+            <h2 className="mb-4 text-lg font-semibold text-gray-900">Situacao dos Contratos</h2>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-md bg-gray-100 p-2">
-                      <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="rounded-md bg-green-100 p-2">
+                      <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-2xl font-semibold text-gray-900">0</p>
+                      <p className="text-2xl font-semibold text-gray-900">{resumo?.contratosEmDia || 0}</p>
                       <p className="text-xs text-gray-500">Em dia</p>
                     </div>
                   </div>
@@ -270,13 +540,13 @@ export default function Financeiro() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-md bg-gray-100 p-2">
-                      <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="rounded-md bg-yellow-100 p-2">
+                      <svg className="h-5 w-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-2xl font-semibold text-gray-900">0</p>
+                      <p className="text-2xl font-semibold text-gray-900">{resumo?.contratosParciais || 0}</p>
                       <p className="text-xs text-gray-500">Parcial</p>
                     </div>
                   </div>
@@ -286,13 +556,13 @@ export default function Financeiro() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-md bg-gray-100 p-2">
-                      <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="rounded-md bg-blue-100 p-2">
+                      <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-2xl font-semibold text-gray-900">0</p>
+                      <p className="text-2xl font-semibold text-gray-900">{resumo?.contratosQuitados || 0}</p>
                       <p className="text-xs text-gray-500">Quitado</p>
                     </div>
                   </div>
@@ -302,13 +572,13 @@ export default function Financeiro() {
               <Card>
                 <CardContent className="pt-6">
                   <div className="flex items-center gap-3">
-                    <div className="rounded-md bg-gray-100 p-2">
-                      <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <div className="rounded-md bg-red-100 p-2">
+                      <svg className="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-2xl font-semibold text-gray-900">0</p>
+                      <p className="text-2xl font-semibold text-gray-900">{resumo?.contratosAtrasados || 0}</p>
                       <p className="text-xs text-gray-500">Em atraso</p>
                     </div>
                   </div>

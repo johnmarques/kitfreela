@@ -33,6 +33,7 @@ import {
   type Document,
 } from '@/hooks/useDocuments'
 import { generatePdf } from '@/lib/pdf'
+import { useSettingsContext } from '@/contexts/SettingsContext'
 
 // Formatar valor como moeda brasileira
 function formatCurrency(value: number): string {
@@ -40,15 +41,6 @@ function formatCurrency(value: number): string {
     style: 'currency',
     currency: 'BRL',
   }).format(value)
-}
-
-// Formatar data para exibicao
-function formatDate(dateStr: string): string {
-  try {
-    return new Date(dateStr).toLocaleDateString('pt-BR')
-  } catch {
-    return dateStr
-  }
 }
 
 // Traduzir status para portugues
@@ -83,6 +75,7 @@ function getStatusColor(status: string): string {
 
 export default function Documentos() {
   const navigate = useNavigate()
+  const { formatDate } = useSettingsContext()
   const { data: documents = [], isLoading } = useDocuments()
   const deleteDocument = useDeleteDocument()
   const duplicateDocument = useDuplicateDocument()

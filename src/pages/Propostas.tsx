@@ -13,13 +13,16 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useFreelancerContext } from '@/contexts/FreelancerContext'
+import { useSettingsContext } from '@/contexts/SettingsContext'
 import { useCreateProposal, useUpdateProposal, useProposalById, getErrorMessage } from '@/hooks/useProposals'
+import { findOrCreateClient } from '@/hooks/useClients'
 import type { ProposalStatus } from '@/types'
 
 export default function Propostas() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const { freelancerId, isLoading: freelancerLoading } = useFreelancerContext()
+  const { formatDate } = useSettingsContext()
   const createProposal = useCreateProposal()
   const updateProposal = useUpdateProposal()
 
@@ -51,6 +54,15 @@ export default function Propostas() {
   // Busca proposta existente se tiver ID na URL
   const { data: existingProposal, isLoading: loadingExisting } = useProposalById(editingId || undefined)
 
+  // Formata numero para exibicao no campo de valor (ex: 1500 -> "1.500,00")
+  const formatNumberToDisplay = (num: number): string => {
+    if (!num || num === 0) return ''
+    return num.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
+  }
+
   // Carrega dados da proposta existente no formulario
   useEffect(() => {
     if (editingId && existingProposal) {
@@ -62,7 +74,8 @@ export default function Propostas() {
       setServico(existingProposal.servico || '')
       setEscopo(existingProposal.escopo || '')
       setPrazo(existingProposal.prazo || '')
-      setValor(existingProposal.valor?.toString() || '')
+      // Formata o valor do banco para exibicao correta (1500 -> "1.500,00")
+      setValor(formatNumberToDisplay(existingProposal.valor || 0))
       setFormaPagamento(existingProposal.forma_pagamento || '')
       setStatus(existingProposal.status || 'rascunho')
       setFollowupData(existingProposal.followup_data || '')
@@ -80,9 +93,39 @@ export default function Propostas() {
   const currentProposalId = savedProposalId || editingId
 
   // Converte valor string para numero
+  // Formato brasileiro: 1.500,00 (ponto = milhar, virgula = decimal)
   const parseValor = (val: string): number => {
-    const cleaned = val.replace(/[^\d,.-]/g, '').replace(',', '.')
+    // Remove tudo exceto digitos, virgula e ponto
+    let cleaned = val.replace(/[^\d,.-]/g, '')
+    // Remove pontos de milhar (separador de milhares brasileiro)
+    cleaned = cleaned.replace(/\./g, '')
+    // Troca virgula decimal por ponto (formato internacional)
+    cleaned = cleaned.replace(',', '.')
     return parseFloat(cleaned) || 0
+  }
+
+  // Mascara para telefone: (XX) XXXXX-XXXX
+  const formatPhone = (value: string): string => {
+    const digits = value.replace(/\D/g, '').slice(0, 11)
+    if (digits.length <= 2) return digits
+    if (digits.length <= 7) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+  }
+
+  // Mascara para valor monetario: R$ X.XXX,XX
+  const formatCurrencyInput = (value: string): string => {
+    // Remove tudo exceto digitos
+    const digits = value.replace(/\D/g, '')
+    if (!digits) return ''
+
+    // Converte para centavos e formata
+    const cents = parseInt(digits, 10)
+    const reais = cents / 100
+
+    return reais.toLocaleString('pt-BR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })
   }
 
   // Prepara dados do formulario para o hook
@@ -127,21 +170,36 @@ export default function Propostas() {
     setIsSaving(true)
 
     try {
-      // Se ja existe uma proposta, faz UPDATE
+      // 1. Tentar criar/encontrar cliente automaticamente (opcional)
+      console.log('[Propostas] Buscando ou criando cliente...')
+      let clienteId: string | null = null
+      try {
+        clienteId = await findOrCreateClient({
+          freelancer_id: freelancerId,
+          nome: clienteNome,
+          email: clienteEmail || undefined,
+          telefone: clienteTelefone || undefined,
+        })
+        console.log('[Propostas] Cliente ID:', clienteId)
+      } catch (clientError) {
+        console.warn('[Propostas] Não foi possível criar cliente, continuando sem:', clientError)
+      }
+
+      // 2. Se ja existe uma proposta, faz UPDATE
       if (currentProposalId) {
         console.log('[Propostas] Atualizando proposta existente:', currentProposalId)
         const result = await updateProposal.mutateAsync({
           id: currentProposalId,
-          data: getFormData(),
+          data: { ...getFormData(), cliente_id: clienteId || undefined },
         })
         console.log('[Propostas] Proposta atualizada! ID:', result.id)
         navigate('/app/documentos')
       } else {
-        // Senao, faz INSERT
+        // 3. Senao, faz INSERT
         console.log('[Propostas] Criando nova proposta...')
         const result = await createProposal.mutateAsync({
           freelancerId: freelancerId,
-          data: getFormData('rascunho'),
+          data: { ...getFormData('rascunho'), cliente_id: clienteId || undefined },
         })
         console.log('[Propostas] Proposta criada! ID:', result.id)
         setSavedProposalId(result.id)
@@ -175,25 +233,40 @@ export default function Propostas() {
     console.log('[Propostas] Gerando documento...')
 
     try {
+      // 1. Tentar criar/encontrar cliente automaticamente (opcional)
+      console.log('[Propostas] Buscando ou criando cliente...')
+      let clienteId: string | null = null
+      try {
+        clienteId = await findOrCreateClient({
+          freelancer_id: freelancerId,
+          nome: clienteNome,
+          email: clienteEmail || undefined,
+          telefone: clienteTelefone || undefined,
+        })
+        console.log('[Propostas] Cliente ID:', clienteId)
+      } catch (clientError) {
+        console.warn('[Propostas] Não foi possível criar cliente, continuando sem:', clientError)
+      }
+
       // Define status: se for rascunho, muda para enviada
       const newStatus = status === 'rascunho' ? 'enviada' : status
 
-      // Se ja existe uma proposta, faz UPDATE
+      // 2. Se ja existe uma proposta, faz UPDATE
       if (currentProposalId) {
         console.log('[Propostas] Atualizando proposta existente:', currentProposalId)
         const result = await updateProposal.mutateAsync({
           id: currentProposalId,
-          data: getFormData(newStatus),
+          data: { ...getFormData(newStatus), cliente_id: clienteId || undefined },
         })
         console.log('[Propostas] Documento atualizado! ID:', result.id)
         setStatus(newStatus)
         setShowPreview(true)
       } else {
-        // Senao, faz INSERT
+        // 3. Senao, faz INSERT
         console.log('[Propostas] Criando nova proposta...')
         const result = await createProposal.mutateAsync({
           freelancerId: freelancerId,
-          data: getFormData(newStatus),
+          data: { ...getFormData(newStatus), cliente_id: clienteId || undefined },
         })
         console.log('[Propostas] Documento criado! ID:', result.id)
         setSavedProposalId(result.id)
@@ -228,12 +301,7 @@ export default function Propostas() {
     })
   }
 
-  // Formata data para exibicao
-  const formatDate = (dateStr: string): string => {
-    if (!dateStr) return ''
-    const date = new Date(dateStr + 'T00:00:00')
-    return date.toLocaleDateString('pt-BR')
-  }
+  // formatDate agora vem do SettingsContext e respeita as configuracoes do usuario
 
   return (
     <div className="space-y-6">
@@ -310,9 +378,9 @@ export default function Propostas() {
                   <Label htmlFor="telefone">Telefone/WhatsApp</Label>
                   <Input
                     id="telefone"
-                    placeholder="Ex: 11999999999"
+                    placeholder="(11) 99999-9999"
                     value={clienteTelefone}
-                    onChange={(e) => setClienteTelefone(e.target.value)}
+                    onChange={(e) => setClienteTelefone(formatPhone(e.target.value))}
                   />
                 </div>
                 <div className="space-y-2">
@@ -363,12 +431,16 @@ export default function Propostas() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="valor">Valor (R$) *</Label>
-                  <Input
-                    id="valor"
-                    placeholder="Ex: 3.500,00"
-                    value={valor}
-                    onChange={(e) => setValor(e.target.value)}
-                  />
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">R$</span>
+                    <Input
+                      id="valor"
+                      placeholder="0,00"
+                      value={valor}
+                      onChange={(e) => setValor(formatCurrencyInput(e.target.value))}
+                      className="pl-10"
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -468,6 +540,7 @@ export default function Propostas() {
                     isGenerating ||
                     freelancerLoading ||
                     !freelancerId ||
+                    !!(editingId && loadingExisting) || // Aguarda carregar proposta existente
                     !!(currentProposalId && showPreview) // Desabilita apos gerar documento
                   }
                 >
@@ -492,7 +565,13 @@ export default function Propostas() {
                 <Button
                   className="flex-1"
                   onClick={handleGenerateDocument}
-                  disabled={isSaving || isGenerating || freelancerLoading || !freelancerId}
+                  disabled={
+                    isSaving ||
+                    isGenerating ||
+                    freelancerLoading ||
+                    !freelancerId ||
+                    !!(editingId && loadingExisting) // Aguarda carregar proposta existente
+                  }
                 >
                   {isGenerating ? (
                     <>
@@ -545,7 +624,7 @@ export default function Propostas() {
                   <div className="mb-8 border-b pb-6">
                     <h2 className="text-xl font-bold text-gray-900">PROPOSTA COMERCIAL</h2>
                     <p className="mt-1 text-sm text-gray-500">
-                      Data: {new Date().toLocaleDateString('pt-BR')}
+                      Data: {formatDate(new Date().toISOString())}
                     </p>
                   </div>
 

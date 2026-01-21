@@ -18,21 +18,6 @@ function formatDate(dateStr: string): string {
   }
 }
 
-// Traduzir status para português
-function translateStatus(status: string): string {
-  const statusMap: Record<string, string> = {
-    rascunho: 'Rascunho',
-    enviada: 'Enviada',
-    aceita: 'Aceita',
-    encerrada: 'Encerrada',
-    expirada: 'Expirada',
-    ativo: 'Ativo',
-    finalizado: 'Finalizado',
-    cancelado: 'Cancelado',
-  }
-  return statusMap[status] || status
-}
-
 // Gerar HTML da proposta
 function generateProposalHtml(doc: Document): string {
   return `
@@ -82,13 +67,6 @@ function generateProposalHtml(doc: Document): string {
               <span>${doc.payment_method.toUpperCase()}</span>
             </div>
           ` : ''}
-        </div>
-      </div>
-
-      <!-- Status -->
-      <div style="margin-bottom: 30px;">
-        <div style="display: inline-block; padding: 6px 12px; background: #dbeafe; color: #1d4ed8; border-radius: 4px; font-size: 12px; font-weight: 500;">
-          Status: ${translateStatus(doc.status)}
         </div>
       </div>
 

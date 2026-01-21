@@ -74,7 +74,7 @@ export function DocumentViewModal({ document, open, onOpenChange }: DocumentView
 
   const statuses = document.type === 'proposal' ? PROPOSAL_STATUSES : CONTRACT_STATUSES
   const isProposal = document.type === 'proposal'
-  const isAccepted = document.status === 'aceita'
+  const isAccepted = status === 'aceita' // Usa estado local para reagir imediatamente
 
   const handleStatusChange = async (newStatus: string) => {
     setStatus(newStatus)

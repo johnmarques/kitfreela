@@ -462,65 +462,66 @@ export default function Perfil() {
                   d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
                 />
               </svg>
-              <CardTitle className="text-base">Plano atual</CardTitle>
+              <CardTitle className="text-base">Plano e Assinatura</CardTitle>
             </div>
-            <Badge>Premium</Badge>
+            <Badge variant="outline" className="bg-gray-100">Free</Badge>
           </div>
-          <p className="text-xs text-gray-500">Acesso completo a todos os recursos</p>
+          <p className="text-xs text-gray-500">Gerencie seu plano de assinatura</p>
         </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="flex items-start gap-2">
-            <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-sm">Propostas e contratos ilimitados</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-sm">Todos os modelos de mensagens</span>
-          </div>
-          <div className="flex items-start gap-2">
-            <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            <span className="text-sm">Suporte prioritário</span>
+        <CardContent className="space-y-4">
+          {/* Status do plano atual */}
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-gray-700">Plano Free</span>
+              <span className="text-xs text-gray-500">Ativo</span>
+            </div>
+            <div className="space-y-2">
+              <div className="flex items-start gap-2">
+                <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm text-gray-600">Ate 5 propostas por mes</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm text-gray-600">Ate 3 contratos por mes</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm text-gray-600">Perfil publico basico</span>
+              </div>
+            </div>
           </div>
 
-          <div className="pt-4">
-            <button className="text-sm text-red-600 hover:text-red-700">
-              <svg className="mr-1 inline h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                />
+          {/* Acoes do plano */}
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button
+              className="flex-1"
+              disabled
+              title="Em breve"
+            >
+              <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
+              Assinar plano Premium
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 text-gray-400"
+              disabled
+              title="Disponivel apenas para assinantes"
+            >
               Cancelar assinatura
-            </button>
+            </Button>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Simular plano */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Simular plano (apenas para demonstração)</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
-              Trial
-            </Button>
-            <Button variant="outline" size="sm">
-              Free
-            </Button>
-            <Button variant="default" size="sm">
-              Premium
-            </Button>
-          </div>
+          <p className="text-xs text-gray-500 text-center">
+            Integracao com pagamento em breve. Aguarde novidades!
+          </p>
         </CardContent>
       </Card>
 

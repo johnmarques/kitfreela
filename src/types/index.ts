@@ -52,6 +52,7 @@ export interface Contract {
   id: string
   user_id: string
   proposal_id?: string
+  client_id?: string // ID do cliente na tabela clients
   // Dados do contratante
   person_type: PersonType
   client_name: string
