@@ -4,13 +4,13 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 0 0% 99%;
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary:  164 24% 46%  /*221.2 83.2% 53.3%*/;
+    --primary:  164 24% 46%; /* 142 71% 45%*/
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 222.2 47.4% 11.2%;
@@ -22,8 +22,10 @@
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 164 24% 46% /*221.2 83.2% 53.3%*/;
-    --radius: 0.3rem;
+    --ring: 164 24% 46%;
+    --radius: 0.5rem;
+    --success: 142 76% 36%;
+    --warning: 38 92% 50%;
   }
 }
 
@@ -32,30 +34,222 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  /* Transicoes suaves globais */
+  button, a, input, select, textarea, [role="button"] {
+    @apply transition-all duration-200 ease-out;
+  }
+
+  /* Focus states mais visiveis */
+  input:focus, select:focus, textarea:focus, button:focus-visible {
+    @apply outline-none ring-2 ring-primary/30 ring-offset-1;
+  }
+
+  /* Scrollbar customizada */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-gray-100 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 rounded-full hover:bg-gray-400 transition-colors;
   }
 }
 
 .text-gray-900, .text-base, label {
-  color: /*hsl(0, 0%, 31%)*/ hsl(270, 3.8%, 20.8%) !important;
+  color: hsl(270, 3.8%, 20.8%) !important;
 }
-/*
-.btn-padrao{background: hsl(0, 0%, 31%) !important;;}
-*/
 
 * {
   border-radius: var(--radius) !important;
 }
 
-input::-moz-placeholder,textarea::-moz-placeholder{
-    opacity:1;
-    color:#5a9384 /*#9ca3af*/
+input::-moz-placeholder, textarea::-moz-placeholder {
+  opacity: 1;
+  color: #5a9384;
 }
-input::placeholder,textarea::placeholder{
-    opacity:1;
-    color:#5a9384/*#9ca3af*/;
+input::placeholder, textarea::placeholder {
+  opacity: 1;
+  color: #5a9384;
 }
-.border-raidius-full {
-  border-radius: calc(var(--radius) + 100%) !important;
-   border-radius: 100% !important;
+
+.border-radius-full {
+  border-radius: 100% !important;
+}
+
+/* ========================================
+   COMPONENTES UTILITARIOS
+   ======================================== */
+
+@layer components {
+  /* Cards com hover sutil */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-0.5;
+  }
+
+  /* Botao primario melhorado */
+  .btn-primary {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 active:scale-[0.98] shadow-sm hover:shadow-md;
+  }
+
+  /* Botao secundario */
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 active:scale-[0.98];
+  }
+
+  /* Badge de status */
+  .status-badge {
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full;
+  }
+
+  /* Icone de status com animacao */
+  .status-dot {
+    @apply w-2 h-2 rounded-full animate-pulse;
+  }
+
+  /* Header de pagina padronizado */
+  .page-header {
+    @apply mb-6 sm:mb-8;
+  }
+  .page-title {
+    @apply text-2xl sm:text-3xl font-semibold text-gray-900 tracking-tight;
+  }
+  .page-subtitle {
+    @apply mt-1 text-sm sm:text-base text-gray-500;
+  }
+
+  /* Cards de metricas */
+  .metric-card {
+    @apply bg-white rounded-xl border border-gray-100 p-5 sm:p-6 shadow-sm hover:shadow-md transition-shadow;
+  }
+  .metric-value {
+    @apply text-2xl sm:text-3xl font-bold text-gray-900 tracking-tight;
+  }
+  .metric-label {
+    @apply text-sm text-gray-500 font-medium;
+  }
+
+  /* Tabelas melhoradas */
+  .table-container {
+    @apply overflow-x-auto rounded-xl border border-gray-100 bg-white;
+  }
+  .table-header {
+    @apply bg-gray-50/80 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider;
+  }
+  .table-row {
+    @apply border-b border-gray-100 hover:bg-gray-50/50 transition-colors;
+  }
+  .table-cell {
+    @apply px-4 py-3.5 text-sm text-gray-700;
+  }
+
+  /* Empty states */
+  .empty-state {
+    @apply flex flex-col items-center justify-center py-12 px-4 text-center;
+  }
+  .empty-state-icon {
+    @apply w-16 h-16 text-gray-300 mb-4;
+  }
+  .empty-state-title {
+    @apply text-lg font-medium text-gray-900 mb-1;
+  }
+  .empty-state-description {
+    @apply text-sm text-gray-500 max-w-sm;
+  }
+
+  /* Loading spinner */
+  .loading-spinner {
+    @apply w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin;
+  }
+
+  /* Form sections */
+  .form-section {
+    @apply space-y-4 sm:space-y-5;
+  }
+  .form-group {
+    @apply space-y-1.5;
+  }
+  .form-label {
+    @apply text-sm font-medium text-gray-700;
+  }
+  .form-hint {
+    @apply text-xs text-gray-500 mt-1;
+  }
+
+  /* Dividers */
+  .divider {
+    @apply border-t border-gray-100 my-6;
+  }
+  .divider-with-text {
+    @apply flex items-center gap-4 my-6;
+  }
+  .divider-with-text::before,
+  .divider-with-text::after {
+    @apply flex-1 border-t border-gray-200 content-[''];
+  }
+}
+
+/* ========================================
+   ANIMACOES
+   ======================================== */
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { opacity: 0; transform: translateX(-8px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+/* Staggered animations */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+
+/* ========================================
+   ESTADOS DE STATUS
+   ======================================== */
+
+.status-rascunho {
+  @apply bg-gray-100 text-gray-700;
+}
+.status-enviada, .status-ativo {
+  @apply bg-blue-50 text-blue-700;
+}
+.status-aceita, .status-finalizado, .status-pago {
+  @apply bg-green-50 text-green-700;
+}
+.status-encerrada, .status-cancelado {
+  @apply bg-gray-100 text-gray-600;
+}
+.status-expirada, .status-atrasado {
+  @apply bg-red-50 text-red-700;
+}
+.status-pendente {
+  @apply bg-amber-50 text-amber-700;
 }

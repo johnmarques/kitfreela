@@ -108,10 +108,13 @@ export default function Landing() {
                 description: 'Não saber o que já foi enviado, aceito ou está pendente com cada cliente',
               },
             ].map((problem, index) => (
-              <Card key={index}>
+              <Card
+                key={index}
+                className="border border-red-100 bg-gradient-to-br from-red-50/50 to-white transition-all duration-300 hover:shadow-md hover:shadow-red-100 hover:border-red-200"
+              >
                 <CardContent className="pt-6">
-                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
-                    <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
+                    <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -317,9 +320,9 @@ export default function Landing() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-50">
-        <div className="container mx-auto px-4 py-8 sm:px-6 sm:py-12">
-          <div className="grid gap-6 sm:gap-8 grid-cols-2 md:grid-cols-4">
+      <footer className="bg-gradient-to-b from-gray-50 to-gray-100">
+        <div className="container mx-auto px-4 py-10 sm:px-6 sm:py-14">
+          <div className="grid gap-8 sm:gap-10 grid-cols-2 md:grid-cols-4">
             <div>
               <h3 className="mb-4 font-semibold text-gray-900">
                 Kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>

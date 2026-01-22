@@ -214,22 +214,24 @@ export default function Documentos() {
   }
 
   return (
-    <div className="space-y-4 md:space-y-6">
+    <div className="space-y-5 md:space-y-6 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-xl md:text-2xl font-semibold text-gray-900">Meus Documentos</h1>
-        <p className="text-sm text-gray-500">Gerencie suas propostas e contratos</p>
+      <div className="page-header">
+        <h1 className="page-title">Meus Documentos</h1>
+        <p className="page-subtitle">Gerencie suas propostas e contratos</p>
       </div>
 
       {/* Filtros */}
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="border-0 shadow-sm">
+        <CardContent className="pt-5 pb-5">
           <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <svg className="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              <span className="text-sm font-medium text-gray-700">Filtros</span>
+            <div className="flex items-center gap-2.5">
+              <div className="rounded-lg bg-gray-100 p-2">
+                <svg className="h-4 w-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                </svg>
+              </div>
+              <span className="text-sm font-semibold text-gray-700">Filtros</span>
             </div>
 
             <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
@@ -301,39 +303,52 @@ export default function Documentos() {
       </Card>
 
       {/* Contador */}
-      <p className="text-sm text-gray-500">
-        {isLoading ? 'Carregando...' : `${filteredDocuments.length} documento${filteredDocuments.length !== 1 ? 's' : ''} encontrado${filteredDocuments.length !== 1 ? 's' : ''}`}
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-gray-500">
+          {isLoading ? (
+            <span className="flex items-center gap-2">
+              <span className="loading-spinner w-4 h-4 border-gray-300 border-t-primary"></span>
+              Carregando...
+            </span>
+          ) : (
+            `${filteredDocuments.length} documento${filteredDocuments.length !== 1 ? 's' : ''} encontrado${filteredDocuments.length !== 1 ? 's' : ''}`
+          )}
+        </p>
+      </div>
 
       {/* Lista de Documentos */}
       <div className="space-y-3">
-        {filteredDocuments.map((doc) => (
-          <Card key={doc.id} className="transition-shadow hover:shadow-md">
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex items-start justify-between gap-2 sm:items-center">
+        {filteredDocuments.map((doc, index) => (
+          <Card
+            key={doc.id}
+            className="card-hover border border-gray-100 shadow-sm animate-fade-in"
+            style={{ animationDelay: `${index * 0.05}s` }}
+          >
+            <CardContent className="p-4 sm:p-5">
+              <div className="flex items-start justify-between gap-3 sm:items-center">
                 <div className="flex items-start gap-3 sm:items-center sm:gap-4">
                   {/* Icone - escondido em mobile muito pequeno */}
-                  <div className="hidden rounded-lg bg-gray-100 p-2 sm:block sm:p-3">
-                    <svg className="h-5 w-5 text-gray-600 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className={`hidden rounded-lg p-2.5 sm:block ${doc.type === 'proposal' ? 'bg-blue-50' : 'bg-purple-50'}`}>
+                    <svg className={`h-5 w-5 ${doc.type === 'proposal' ? 'text-blue-500' : 'text-purple-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
 
                   {/* Informacoes */}
-                  <div className="space-y-1">
-                    <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                      <span className="text-xs text-gray-500">
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                      <span className={`text-xs font-medium ${doc.type === 'proposal' ? 'text-blue-600' : 'text-purple-600'}`}>
                         {doc.type === 'proposal' ? 'Proposta' : 'Contrato'}
                       </span>
-                      <span className="text-xs text-gray-400">-</span>
-                      <span className="text-xs text-gray-500">{formatDate(doc.created_at)}</span>
+                      <span className="text-xs text-gray-300">|</span>
+                      <span className="text-xs text-gray-400">{formatDate(doc.created_at)}</span>
                     </div>
-                    <h3 className="text-sm font-medium text-gray-900 sm:text-base">{doc.title}</h3>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className={`inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium ${getStatusColor(doc.status)}`}>
+                    <h3 className="text-sm font-semibold text-gray-900 sm:text-base">{doc.title}</h3>
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <span className={`status-badge ${getStatusColor(doc.status)}`}>
                         {translateStatus(doc.status)}
                       </span>
-                      <span className="text-sm font-medium text-gray-900">{formatCurrency(doc.value)}</span>
+                      <span className="text-sm font-bold text-gray-900">{formatCurrency(doc.value)}</span>
                     </div>
                   </div>
                 </div>
@@ -392,19 +407,21 @@ export default function Documentos() {
 
       {/* Empty State */}
       {!isLoading && filteredDocuments.length === 0 && (
-        <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16">
-            <svg className="mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 className="mb-2 text-lg font-medium text-gray-900">Nenhum documento encontrado</h3>
-            <p className="mb-4 text-sm text-gray-500">
+        <Card className="border-0 shadow-sm">
+          <CardContent className="empty-state py-16">
+            <div className="rounded-full bg-gray-100 p-4 mb-4">
+              <svg className="empty-state-icon w-10 h-10 text-gray-400 !mb-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="empty-state-title">Nenhum documento encontrado</h3>
+            <p className="empty-state-description mb-5">
               {documents.length === 0
-                ? 'Crie sua primeira proposta para comecar'
-                : 'Nenhum documento corresponde aos filtros selecionados'}
+                ? 'Crie sua primeira proposta para comecar a organizar seus documentos'
+                : 'Tente ajustar os filtros para encontrar o que procura'}
             </p>
             {documents.length === 0 && (
-              <Button onClick={() => navigate('/app/propostas')}>
+              <Button onClick={() => navigate('/app/propostas')} className="btn-primary">
                 Criar Proposta
               </Button>
             )}

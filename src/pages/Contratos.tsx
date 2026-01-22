@@ -559,13 +559,13 @@ CPF:
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
+      <div className="page-header">
+        <h1 className="page-title">
           {editId ? 'Editar Contrato' : 'Criar Contrato'}
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="page-subtitle">
           Gere um contrato de servico com clausulas profissionais
         </p>
       </div>
@@ -575,9 +575,16 @@ CPF:
         {/* Formulario */}
         <div className="space-y-6">
           {/* Status */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Status do Contrato</CardTitle>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+                <div className="rounded-lg bg-purple-100 p-2">
+                  <svg className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                Status do Contrato
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <Select value={status} onValueChange={(v) => setStatus(v as ContractStatus)}>
@@ -595,9 +602,16 @@ CPF:
           </Card>
 
           {/* Contratante */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Contratante</CardTitle>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+                <div className="rounded-lg bg-blue-100 p-2">
+                  <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  </svg>
+                </div>
+                Contratante
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Tipo de pessoa */}
@@ -737,9 +751,16 @@ CPF:
           </Card>
 
           {/* Servico */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Servico</CardTitle>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+                <div className="rounded-lg bg-amber-100 p-2">
+                  <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                Servico
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -777,9 +798,16 @@ CPF:
           </Card>
 
           {/* Valor, Prazo e Pagamento */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Valor, Prazo e Pagamento</CardTitle>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+                <div className="rounded-lg bg-emerald-100 p-2">
+                  <svg className="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                Valor, Prazo e Pagamento
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Valor */}
@@ -907,19 +935,23 @@ CPF:
           </Card>
 
           {/* Botoes */}
-          <div className="flex gap-3">
+          <div className="flex gap-3 pt-2">
             <Button
               variant="outline"
-              className="flex-1"
+              className="flex-1 h-11"
               onClick={handleSave}
               disabled={isLoading}
             >
-              <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-              </svg>
+              {isLoading ? (
+                <span className="loading-spinner mr-2 h-4 w-4 border-gray-300 border-t-gray-600"></span>
+              ) : (
+                <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                </svg>
+              )}
               {isLoading ? 'Salvando...' : 'Salvar'}
             </Button>
-            <Button className="flex-1" onClick={handleGenerate}>
+            <Button className="flex-1 h-11 btn-primary" onClick={handleGenerate}>
               <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
@@ -930,12 +962,12 @@ CPF:
 
         {/* Preview */}
         <div className="lg:sticky lg:top-8 lg:self-start">
-          <Card className="bg-gray-50">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Preview</CardTitle>
+          <Card className="bg-gradient-to-b from-gray-50 to-gray-100/50 border-0 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-base font-semibold text-gray-700">Preview</CardTitle>
               {showPreview && (
-                <Button size="sm" variant="outline" onClick={handleDownloadPdf}>
-                  <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <Button size="sm" variant="outline" onClick={handleDownloadPdf} className="gap-2">
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                   </svg>
                   Baixar PDF
@@ -944,18 +976,21 @@ CPF:
             </CardHeader>
             <CardContent>
               {showPreview ? (
-                <div className="rounded-lg border bg-white p-6 min-h-[600px]">
+                <div className="rounded-lg border border-gray-200 bg-white p-6 min-h-[600px] shadow-inner max-h-[80vh] overflow-y-auto">
                   <pre className="whitespace-pre-wrap text-sm font-sans leading-relaxed text-gray-800">
                     {contractText}
                   </pre>
                 </div>
               ) : (
-                <div className="flex min-h-[600px] items-center justify-center rounded-lg border-2 border-dashed border-gray-300 bg-white p-8">
+                <div className="flex min-h-[600px] items-center justify-center rounded-lg border-2 border-dashed border-gray-200 bg-white p-8">
                   <div className="text-center">
-                    <svg className="mx-auto mb-4 h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <p className="text-sm text-gray-500">
+                    <div className="rounded-full bg-gray-100 p-4 mx-auto mb-4 w-fit">
+                      <svg className="h-8 w-8 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                      </svg>
+                    </div>
+                    <p className="text-sm font-medium text-gray-600 mb-1">Nenhum preview disponivel</p>
+                    <p className="text-xs text-gray-400">
                       Preencha os dados e clique em "Gerar Documento"
                     </p>
                   </div>

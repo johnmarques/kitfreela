@@ -64,29 +64,49 @@ export default function Configuracoes() {
       return
     }
 
+    if (!user?.email) {
+      toast.error('Usuario nao autenticado')
+      return
+    }
+
     setIsChangingPassword(true)
 
     try {
-      // Primeiro verifica a senha atual fazendo login novamente
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email: user?.email || '',
+      // Verifica a senha atual fazendo login em uma sessao separada
+      const { data: verifyData, error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
         password: currentPassword,
       })
 
-      if (signInError) {
+      if (signInError || !verifyData.session) {
         toast.error('Senha atual incorreta')
         setIsChangingPassword(false)
         return
       }
 
-      // Atualiza a senha
+      // Atualiza a senha usando a sessao verificada
       const { error: updateError } = await supabase.auth.updateUser({
         password: newPassword,
       })
 
       if (updateError) {
+        console.error('[ChangePassword] Erro ao atualizar:', updateError)
         toast.error('Erro ao alterar senha: ' + updateError.message)
         setIsChangingPassword(false)
+        return
+      }
+
+      // Faz logout e login novamente com a nova senha para garantir sessao valida
+      await supabase.auth.signOut()
+      const { error: reLoginError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: newPassword,
+      })
+
+      if (reLoginError) {
+        console.error('[ChangePassword] Erro ao relogar:', reLoginError)
+        toast.warning('Senha alterada, mas houve erro ao relogar. Faca login novamente.')
+        navigate('/login')
         return
       }
 
@@ -298,8 +318,9 @@ export default function Configuracoes() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-gray-500">Carregando configuracoes...</div>
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <span className="loading-spinner w-6 h-6 border-gray-300 border-t-primary"></span>
+        <div className="text-gray-500 text-sm">Carregando configuracoes...</div>
       </div>
     )
   }
@@ -307,35 +328,42 @@ export default function Configuracoes() {
   // Error state
   if (error) {
     return (
-      <div className="flex items-center justify-center py-12">
-        <div className="text-red-500">Erro ao carregar configuracoes</div>
+      <div className="flex flex-col items-center justify-center py-16 gap-3">
+        <div className="rounded-full bg-red-100 p-3">
+          <svg className="h-6 w-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <div className="text-red-600 text-sm font-medium">Erro ao carregar configuracoes</div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Configuracoes</h1>
-        <p className="text-sm text-gray-500">Gerencie as preferencias do sistema</p>
+      <div className="page-header">
+        <h1 className="page-title">Configuracoes</h1>
+        <p className="page-subtitle">Gerencie as preferencias do sistema</p>
       </div>
 
       {/* Preferencias de Documentos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-              />
-            </svg>
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+            <div className="rounded-lg bg-blue-100 p-2">
+              <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+            </div>
             Preferencias de Documentos
           </CardTitle>
-          <p className="text-xs text-gray-500">Configure padroes para propostas e contratos</p>
+          <p className="text-xs text-gray-500 mt-1">Configure padroes para propostas e contratos</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -411,20 +439,22 @@ export default function Configuracoes() {
       </Card>
 
       {/* Notificacoes */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-              />
-            </svg>
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+            <div className="rounded-lg bg-amber-100 p-2">
+              <svg className="h-4 w-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                />
+              </svg>
+            </div>
             Notificacoes
           </CardTitle>
-          <p className="text-xs text-gray-500">Escolha como deseja ser notificado</p>
+          <p className="text-xs text-gray-500 mt-1">Escolha como deseja ser notificado</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-start space-x-3">
@@ -504,20 +534,22 @@ export default function Configuracoes() {
       </Card>
 
       {/* Seguranca */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+            <div className="rounded-lg bg-green-100 p-2">
+              <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                />
+              </svg>
+            </div>
             Seguranca
           </CardTitle>
-          <p className="text-xs text-gray-500">Proteja sua conta</p>
+          <p className="text-xs text-gray-500 mt-1">Proteja sua conta</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -582,20 +614,22 @@ export default function Configuracoes() {
       </Card>
 
       {/* Dados e Privacidade */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
-              />
-            </svg>
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+            <div className="rounded-lg bg-purple-100 p-2">
+              <svg className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+            </div>
             Dados e Privacidade
           </CardTitle>
-          <p className="text-xs text-gray-500">Gerencie seus dados</p>
+          <p className="text-xs text-gray-500 mt-1">Gerencie seus dados</p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -694,17 +728,19 @@ export default function Configuracoes() {
       </Dialog>
 
       {/* Sobre */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
+      <Card className="border-0 shadow-sm">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+            <div className="rounded-lg bg-gray-100 p-2">
+              <svg className="h-4 w-4 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
             Sobre o KitFreela
           </CardTitle>
         </CardHeader>
@@ -746,9 +782,21 @@ export default function Configuracoes() {
       </Card>
 
       {/* Botao Salvar */}
-      <div className="flex justify-end">
-        <Button size="lg" onClick={handleSave} disabled={isSaving}>
-          {isSaving ? 'Salvando...' : 'Salvar Configuracoes'}
+      <div className="flex justify-end pt-2">
+        <Button size="lg" onClick={handleSave} disabled={isSaving} className="btn-primary gap-2 min-w-[200px]">
+          {isSaving ? (
+            <>
+              <span className="loading-spinner w-4 h-4 border-white/30 border-t-white"></span>
+              Salvando...
+            </>
+          ) : (
+            <>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Salvar Configuracoes
+            </>
+          )}
         </Button>
       </div>
     </div>

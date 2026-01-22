@@ -121,20 +121,20 @@ export default function Financeiro() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Financeiro</h1>
-          <p className="text-sm text-gray-500">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="page-header">
+          <h1 className="page-title">Financeiro</h1>
+          <p className="page-subtitle">
             Registre manualmente seus recebimentos para manter controle financeiro dos seus projetos.
           </p>
         </div>
 
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!contratos || contratos.length === 0}>
-              <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <Button disabled={!contratos || contratos.length === 0} className="btn-primary gap-2 w-full sm:w-auto">
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               Registrar pagamento
@@ -267,19 +267,22 @@ export default function Financeiro() {
           </p>
 
           {isLoading ? (
-            <Card>
-              <CardContent className="py-8 text-center text-gray-500">
+            <Card className="border-0 shadow-sm">
+              <CardContent className="py-8 text-center text-gray-500 flex items-center justify-center gap-3">
+                <span className="loading-spinner w-5 h-5 border-gray-300 border-t-primary"></span>
                 Carregando contratos...
               </CardContent>
             </Card>
           ) : !contratos || contratos.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <svg className="mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                <h3 className="mb-2 text-lg font-medium text-gray-900">Nenhum contrato cadastrado.</h3>
-                <p className="text-sm text-gray-500">Crie contratos para comecar a controlar seus recebimentos.</p>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="empty-state py-16">
+                <div className="rounded-full bg-gray-100 p-4 mb-4">
+                  <svg className="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="empty-state-title">Nenhum contrato cadastrado</h3>
+                <p className="empty-state-description">Crie contratos para comecar a controlar seus recebimentos.</p>
               </CardContent>
             </Card>
           ) : (
@@ -293,8 +296,8 @@ export default function Financeiro() {
                 const percentPago = contrato.valor > 0 ? Math.round((totalPago / contrato.valor) * 100) : 0
 
                 return (
-                  <Card key={contrato.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
+                  <Card key={contrato.id} className="card-hover border border-gray-100 shadow-sm">
+                    <CardContent className="p-4 sm:p-5">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -342,19 +345,22 @@ export default function Financeiro() {
           </p>
 
           {isLoading ? (
-            <Card>
-              <CardContent className="py-8 text-center text-gray-500">
+            <Card className="border-0 shadow-sm">
+              <CardContent className="py-8 text-center text-gray-500 flex items-center justify-center gap-3">
+                <span className="loading-spinner w-5 h-5 border-gray-300 border-t-primary"></span>
                 Carregando pagamentos...
               </CardContent>
             </Card>
           ) : !registros || registros.length === 0 ? (
-            <Card>
-              <CardContent className="flex flex-col items-center justify-center py-16">
-                <svg className="mb-4 h-16 w-16 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-                <h3 className="mb-2 text-lg font-medium text-gray-900">Nenhum pagamento registrado.</h3>
-                <p className="text-sm text-gray-500">Registre pagamentos para acompanhar seus recebimentos.</p>
+            <Card className="border-0 shadow-sm">
+              <CardContent className="empty-state py-16">
+                <div className="rounded-full bg-gray-100 p-4 mb-4">
+                  <svg className="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+                <h3 className="empty-state-title">Nenhum pagamento registrado</h3>
+                <p className="empty-state-description">Registre pagamentos para acompanhar seus recebimentos.</p>
               </CardContent>
             </Card>
           ) : (
@@ -362,8 +368,8 @@ export default function Financeiro() {
               {registros.map((registro) => {
                 const contrato = contratos?.find((c) => c.id === registro.contract_id)
                 return (
-                  <Card key={registro.id} className="hover:shadow-md transition-shadow">
-                    <CardContent className="p-4">
+                  <Card key={registro.id} className="card-hover border border-gray-100 shadow-sm">
+                    <CardContent className="p-4 sm:p-5">
                       <div className="flex items-center justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
@@ -411,73 +417,73 @@ export default function Financeiro() {
         <TabsContent value="resumo" className="space-y-6">
           {/* Cards de Resumo */}
           <div className="grid grid-cols-1 gap-4 md:grid-cols-4">
-            <Card className='shadow-lg'>
-              <CardContent className="pt-6">
+            <Card className="card-hover border-0 shadow-sm bg-gradient-to-br from-blue-50 to-white">
+              <CardContent className="pt-5 pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-md bg-blue-100 p-2">
+                  <div className="rounded-lg bg-blue-100 p-2.5">
                     <svg className="h-5 w-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xl font-semibold text-gray-900">
+                    <p className="text-xl font-bold text-gray-900">
                       {formatCurrency(resumo?.totalAReceber || 0)}
                     </p>
-                    <p className="text-xs text-gray-500">Total a receber</p>
+                    <p className="text-xs font-medium text-blue-600">Total a receber</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className='shadow-lg'>
-              <CardContent className="pt-6">
+            <Card className="card-hover border-0 shadow-sm bg-gradient-to-br from-green-50 to-white">
+              <CardContent className="pt-5 pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-md bg-green-100 p-2">
+                  <div className="rounded-lg bg-green-100 p-2.5">
                     <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xl font-semibold text-green-600">
+                    <p className="text-xl font-bold text-green-600">
                       {formatCurrency(resumo?.totalRecebido || 0)}
                     </p>
-                    <p className="text-xs text-gray-500">Total recebido</p>
+                    <p className="text-xs font-medium text-green-600">Total recebido</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className='shadow-lg'>
-              <CardContent className="pt-6">
+            <Card className="card-hover border-0 shadow-sm bg-gradient-to-br from-gray-50 to-white">
+              <CardContent className="pt-5 pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-md bg-gray-100 p-2">
+                  <div className="rounded-lg bg-gray-100 p-2.5">
                     <svg className="h-5 w-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xl font-semibold text-gray-900">
+                    <p className="text-xl font-bold text-gray-900">
                       {formatCurrency(resumo?.totalFaturado || 0)}
                     </p>
-                    <p className="text-xs text-gray-500">Total faturado</p>
+                    <p className="text-xs font-medium text-gray-500">Total faturado</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
 
-            <Card className='shadow-lg'>
-              <CardContent className="pt-6">
+            <Card className="card-hover border-0 shadow-sm bg-gradient-to-br from-purple-50 to-white">
+              <CardContent className="pt-5 pb-5">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-md bg-purple-100 p-2">
+                  <div className="rounded-lg bg-purple-100 p-2.5">
                     <svg className="h-5 w-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
                     </svg>
                   </div>
                   <div>
-                    <p className="text-xl font-semibold text-gray-900">
+                    <p className="text-xl font-bold text-purple-600">
                       {resumo?.totalContratos || 0}
                     </p>
-                    <p className="text-xs text-gray-500">Contratos</p>
+                    <p className="text-xs font-medium text-purple-600">Contratos</p>
                   </div>
                 </div>
               </CardContent>

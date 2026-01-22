@@ -189,22 +189,34 @@ export default function PerfilPublico() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Perfil Público</h1>
-          <p className="text-sm text-gray-500">Sua vitrine profissional online</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div className="page-header">
+          <h1 className="page-title">Perfil Público</h1>
+          <p className="page-subtitle">Sua vitrine profissional online</p>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-medium ${data.publicado ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+        <span className={`status-badge w-fit ${data.publicado ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+          <span className={`status-dot ${data.publicado ? 'bg-green-500' : 'bg-gray-400'}`}></span>
           {data.publicado ? 'Publicado' : 'Rascunho'}
         </span>
       </div>
 
       {/* Mensagem de feedback */}
       {message && (
-        <div className={`rounded-md p-3 text-sm ${message.type === 'success' ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
-          {message.text}
+        <div className={`rounded-lg p-4 text-sm flex items-center gap-3 animate-fade-in ${message.type === 'success' ? 'bg-green-50 text-green-700 border border-green-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
+          <div className={`rounded-full p-1 ${message.type === 'success' ? 'bg-green-100' : 'bg-red-100'}`}>
+            {message.type === 'success' ? (
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+            )}
+          </div>
+          <span className="font-medium">{message.text}</span>
         </div>
       )}
 
@@ -212,20 +224,22 @@ export default function PerfilPublico() {
         {/* Coluna Esquerda */}
         <div className="space-y-6">
           {/* Identidade */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-                  />
-                </svg>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+                <div className="rounded-lg bg-blue-100 p-2">
+                  <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
+                  </svg>
+                </div>
                 Identidade
               </CardTitle>
-              <p className="text-xs text-gray-500">Suas informações profissionais</p>
+              <p className="text-xs text-gray-500 mt-1">Suas informacoes profissionais</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -300,22 +314,24 @@ export default function PerfilPublico() {
             </CardContent>
           </Card>
 
-          {/* Vídeo */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-                Vídeo
+          {/* Video */}
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+                <div className="rounded-lg bg-red-100 p-2">
+                  <svg className="h-4 w-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                Video
               </CardTitle>
-              <p className="text-xs text-gray-500">
-                Adicione um vídeo de apresentação (opcional)
+              <p className="text-xs text-gray-500 mt-1">
+                Adicione um video de apresentacao (opcional)
               </p>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -337,21 +353,23 @@ export default function PerfilPublico() {
 
         {/* Coluna Direita */}
         <div className="space-y-6">
-          {/* Portfólio */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
-                Portfólio
+          {/* Portfolio */}
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+                <div className="rounded-lg bg-purple-100 p-2">
+                  <svg className="h-4 w-4 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    />
+                  </svg>
+                </div>
+                Portfolio
               </CardTitle>
-              <p className="text-xs text-gray-500">Até 6 imagens dos seus trabalhos</p>
+              <p className="text-xs text-gray-500 mt-1">Ate 6 imagens dos seus trabalhos</p>
             </CardHeader>
             <CardContent className="space-y-4">
               {[0, 1, 2, 3, 4, 5].map((index) => (
@@ -368,21 +386,23 @@ export default function PerfilPublico() {
             </CardContent>
           </Card>
 
-          {/* Publicação */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
-                  />
-                </svg>
-                Publicação
+          {/* Publicacao */}
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+                <div className="rounded-lg bg-green-100 p-2">
+                  <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                    />
+                  </svg>
+                </div>
+                Publicacao
               </CardTitle>
-              <p className="text-xs text-gray-500">Controle a visibilidade do seu perfil</p>
+              <p className="text-xs text-gray-500 mt-1">Controle a visibilidade do seu perfil</p>
             </CardHeader>
             <CardContent className="space-y-4"> 
               <div className="flex items-start space-x-3">
@@ -431,10 +451,22 @@ export default function PerfilPublico() {
         </div>
       </div>
 
-      {/* Botão Salvar */}
-      <div className="flex justify-end">
-        <Button size="lg" onClick={handleSave} disabled={saving}>
-          {saving ? 'Salvando...' : 'Salvar Alterações'}
+      {/* Botao Salvar */}
+      <div className="flex justify-end pt-2">
+        <Button size="lg" onClick={handleSave} disabled={saving} className="btn-primary gap-2 min-w-[180px]">
+          {saving ? (
+            <>
+              <span className="loading-spinner w-4 h-4 border-white/30 border-t-white"></span>
+              Salvando...
+            </>
+          ) : (
+            <>
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Salvar Alteracoes
+            </>
+          )}
         </Button>
       </div>
     </div>

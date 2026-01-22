@@ -38,27 +38,30 @@ function formatRelativeDate(dateStr: string | null): string {
 }
 
 // Linha de cliente individual (padrao lista como Meus Documentos)
-function ClientRow({ client }: { client: ClientWithMetrics }) {
+function ClientRow({ client, index }: { client: ClientWithMetrics; index: number }) {
   const locationParts = [client.cidade, client.estado].filter(Boolean)
   const location = locationParts.length > 0 ? locationParts.join(' / ') : null
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-start justify-between gap-2 sm:items-center">
+    <Card
+      className="card-hover border border-gray-100 shadow-sm animate-fade-in"
+      style={{ animationDelay: `${index * 0.05}s` }}
+    >
+      <CardContent className="p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3 sm:items-center">
           <div className="flex items-start gap-3 sm:items-center sm:gap-4">
             {/* Avatar */}
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 shrink-0">
-              <span className="text-sm font-semibold text-primary">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/10 shrink-0 shadow-sm">
+              <span className="text-sm font-bold text-primary">
                 {client.nome.charAt(0).toUpperCase()}
               </span>
             </div>
 
             {/* Informacoes principais */}
-            <div className="space-y-1 min-w-0">
-              <div className="flex flex-wrap items-center gap-1 sm:gap-2">
-                <h3 className="text-sm font-medium text-gray-900 sm:text-base truncate">{client.nome}</h3>
-                <Badge variant={client.tipo_pessoa === 'pj' ? 'secondary' : 'outline'} className="shrink-0">
+            <div className="space-y-1.5 min-w-0">
+              <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                <h3 className="text-sm font-semibold text-gray-900 sm:text-base truncate">{client.nome}</h3>
+                <Badge variant={client.tipo_pessoa === 'pj' ? 'secondary' : 'outline'} className="shrink-0 text-[10px]">
                   {client.tipo_pessoa === 'pj' ? 'PJ' : 'PF'}
                 </Badge>
               </div>
@@ -147,17 +150,19 @@ function LoadingState() {
 // Estado vazio
 function EmptyState() {
   return (
-    <Card className="col-span-full">
-      <CardContent className="py-12 text-center">
-        <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-        </svg>
-        <h3 className="mt-4 text-lg font-medium text-gray-900">Nenhum cliente ainda</h3>
-        <p className="mt-2 text-sm text-gray-500 max-w-md mx-auto">
+    <Card className="col-span-full border-0 shadow-sm">
+      <CardContent className="empty-state py-16">
+        <div className="rounded-full bg-gray-100 p-4 mb-4">
+          <svg className="h-10 w-10 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+          </svg>
+        </div>
+        <h3 className="empty-state-title">Nenhum cliente ainda</h3>
+        <p className="empty-state-description mb-4">
           Os clientes sao criados automaticamente quando voce cria uma proposta ou contrato.
           Comece criando sua primeira proposta!
         </p>
-        <p className="mt-4 text-xs text-gray-400">
+        <p className="text-xs text-gray-400">
           Dica: Se voce ja criou propostas mas nao ve clientes, pode ser necessario executar a migration do banco de dados.
         </p>
       </CardContent>
@@ -182,29 +187,29 @@ export default function Clientes() {
   ) || { totalClientes: 0, totalPropostas: 0, totalContratos: 0, totalValorPropostas: 0, totalValorContratos: 0 }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">Clientes</h1>
-        <p className="text-sm text-gray-500">
+      <div className="page-header">
+        <h1 className="page-title">Clientes</h1>
+        <p className="page-subtitle">
           Visao consolidada dos seus clientes (criados automaticamente via propostas e contratos)
         </p>
       </div>
 
       {/* Cards de resumo */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="card-hover border-0 shadow-sm bg-gradient-to-br from-gray-50 to-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Total de Clientes</CardTitle>
+            <CardTitle className="text-xs font-medium text-gray-500 uppercase tracking-wide">Total de Clientes</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-gray-900">{totals.totalClientes}</p>
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-hover border-0 shadow-sm bg-gradient-to-br from-blue-50 to-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Propostas</CardTitle>
+            <CardTitle className="text-xs font-medium text-blue-600 uppercase tracking-wide">Propostas</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-blue-600">{totals.totalPropostas}</p>
@@ -212,9 +217,9 @@ export default function Clientes() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-hover border-0 shadow-sm bg-gradient-to-br from-green-50 to-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Contratos</CardTitle>
+            <CardTitle className="text-xs font-medium text-green-600 uppercase tracking-wide">Contratos</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-green-600">{totals.totalContratos}</p>
@@ -222,12 +227,12 @@ export default function Clientes() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="card-hover border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-white">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-gray-500">Total Geral</CardTitle>
+            <CardTitle className="text-xs font-medium text-emerald-600 uppercase tracking-wide">Total Geral</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-gray-900">{formatCurrency(totals.totalValorContratos)}</p>
+            <p className="text-2xl font-bold text-emerald-600">{formatCurrency(totals.totalValorContratos)}</p>
           </CardContent>
         </Card>
       </div>
@@ -252,8 +257,8 @@ export default function Clientes() {
         <EmptyState />
       ) : (
         <div className="space-y-3">
-          {clients.map((client) => (
-            <ClientRow key={client.id} client={client} />
+          {clients.map((client, index) => (
+            <ClientRow key={client.id} client={client} index={index} />
           ))}
         </div>
       )}

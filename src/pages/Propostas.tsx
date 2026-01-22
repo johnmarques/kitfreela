@@ -304,13 +304,13 @@ export default function Propostas() {
   // formatDate agora vem do SettingsContext e respeita as configuracoes do usuario
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">
+      <div className="page-header">
+        <h1 className="page-title">
           {isEditing ? 'Editar Proposta' : 'Criar Proposta'}
         </h1>
-        <p className="text-sm text-gray-500">
+        <p className="page-subtitle">
           {isEditing
             ? 'Altere os dados da proposta existente'
             : 'Preencha os dados e gere sua proposta profissional'}
@@ -319,29 +319,26 @@ export default function Propostas() {
 
       {/* Loading ao carregar proposta existente */}
       {editingId && loadingExisting && (
-        <div className="rounded-md bg-blue-50 border border-blue-200 p-4">
+        <div className="rounded-lg bg-blue-50 border border-blue-100 p-4 animate-fade-in">
           <div className="flex items-center">
-            <svg className="mr-3 h-5 w-5 animate-spin text-blue-500" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-            </svg>
-            <p className="text-sm text-blue-700">Carregando dados da proposta...</p>
+            <span className="loading-spinner mr-3 h-5 w-5 border-blue-200 border-t-blue-500"></span>
+            <p className="text-sm font-medium text-blue-700">Carregando dados da proposta...</p>
           </div>
         </div>
       )}
 
       {/* Mensagem de erro */}
       {error && (
-        <div className="rounded-md bg-red-50 border border-red-200 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
+        <div className="rounded-lg bg-red-50 border border-red-100 p-4 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <div className="rounded-full bg-red-100 p-1.5">
+              <svg className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
               </svg>
             </div>
-            <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Erro ao salvar proposta</h3>
-              <p className="mt-1 text-sm text-red-700">{error}</p>
+            <div>
+              <h3 className="text-sm font-semibold text-red-800">Erro ao salvar proposta</h3>
+              <p className="mt-0.5 text-sm text-red-600">{error}</p>
             </div>
           </div>
         </div>
@@ -351,16 +348,18 @@ export default function Propostas() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Formulario */}
         <div>
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2 text-base">
-                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
+          <Card className="border-0 shadow-sm">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2.5 text-base font-semibold text-gray-900">
+                <div className="rounded-lg bg-blue-100 p-2">
+                  <svg className="h-4 w-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
                 Dados da Proposta
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-5">
               {/* Nome do Cliente */}
               <div className="space-y-2">
                 <Label htmlFor="cliente">Nome do Cliente *</Label>
@@ -488,8 +487,8 @@ export default function Propostas() {
               </div>
 
               {/* Follow-up */}
-              <div className="space-y-4 rounded-lg border border-gray-200 p-4">
-                <h3 className="text-sm font-medium text-gray-900">Follow-up</h3>
+              <div className="space-y-4 rounded-lg border border-gray-100 bg-gray-50/50 p-4">
+                <h3 className="text-sm font-semibold text-gray-800">Follow-up</h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="dataFollowup">Data do Próximo Follow-up</Label>
@@ -529,11 +528,11 @@ export default function Propostas() {
               </div>
 
               {/* Botoes */}
-              <div className="flex gap-3 pt-4">
+              <div className="flex gap-3 pt-6 border-t border-gray-100">
                 {/* Salvar Rascunho - desabilitado apos proposta gerada */}
                 <Button
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 h-11"
                   onClick={handleSaveDraft}
                   disabled={
                     isSaving ||
@@ -563,7 +562,7 @@ export default function Propostas() {
                 </Button>
                 {/* Gerar/Atualizar Documento */}
                 <Button
-                  className="flex-1"
+                  className="flex-1 h-11 btn-primary"
                   onClick={handleGenerateDocument}
                   disabled={
                     isSaving ||
@@ -597,9 +596,9 @@ export default function Propostas() {
 
         {/* Preview */}
         <div className="lg:sticky lg:top-8 lg:self-start">
-          <Card className="bg-gray-50">
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base">Preview</CardTitle>
+          <Card className="bg-gradient-to-b from-gray-50 to-gray-100/50 border-0 shadow-sm">
+            <CardHeader className="flex flex-row items-center justify-between pb-3">
+              <CardTitle className="text-base font-semibold text-gray-700">Preview</CardTitle>
               {!showPreview && clienteNome && servico && valor && (
                 <Button variant="ghost" size="sm" onClick={handleShowPreview}>
                   Visualizar
@@ -608,14 +607,19 @@ export default function Propostas() {
             </CardHeader>
             <CardContent>
               {showPreview && clienteNome && servico ? (
-                <div className="min-h-[600px] rounded-lg border bg-white p-8">
+                <div className="min-h-[600px] rounded-lg border border-gray-200 bg-white p-8 shadow-inner">
                   {/* Indicador de sucesso */}
                   {currentProposalId && (
-                    <div className="mb-4 rounded bg-green-50 border border-green-200 p-3">
-                      <p className="text-sm text-green-700">
+                    <div className="mb-4 rounded-lg bg-green-50 border border-green-100 p-3 flex items-center gap-2">
+                      <div className="rounded-full bg-green-100 p-1">
+                        <svg className="h-3 w-3 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-medium text-green-700">
                         {isEditing
-                          ? `Proposta atualizada! ID: ${currentProposalId.substring(0, 8)}...`
-                          : `Proposta salva! ID: ${currentProposalId.substring(0, 8)}...`}
+                          ? `Proposta atualizada com sucesso`
+                          : `Proposta salva com sucesso`}
                       </p>
                     </div>
                   )}

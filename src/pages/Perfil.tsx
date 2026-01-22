@@ -168,6 +168,34 @@ export default function Perfil() {
     setProfile(prev => ({ ...prev, [field]: value }))
   }
 
+  // Mascara para telefone/WhatsApp: (XX) X XXXX-XXXX
+  function formatPhone(value: string): string {
+    // Remove tudo que nao for numero
+    const numbers = value.replace(/\D/g, '')
+
+    // Aplica a mascara progressivamente
+    if (numbers.length <= 2) {
+      return numbers.length ? `(${numbers}` : ''
+    }
+    if (numbers.length <= 3) {
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2)}`
+    }
+    if (numbers.length <= 7) {
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 3)} ${numbers.slice(3)}`
+    }
+    if (numbers.length <= 11) {
+      return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 3)} ${numbers.slice(3, 7)}-${numbers.slice(7)}`
+    }
+    // Limita a 11 digitos
+    return `(${numbers.slice(0, 2)}) ${numbers.slice(2, 3)} ${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`
+  }
+
+  // Handler especifico para WhatsApp com mascara
+  function handleWhatsAppChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const formatted = formatPhone(e.target.value)
+    updateField('whatsapp', formatted)
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -391,7 +419,8 @@ export default function Perfil() {
               id="whatsapp"
               placeholder="(85) 9 8224-5233"
               value={profile.whatsapp}
-              onChange={(e) => updateField('whatsapp', e.target.value)}
+              onChange={handleWhatsAppChange}
+              maxLength={16}
             />
           </div>
 
