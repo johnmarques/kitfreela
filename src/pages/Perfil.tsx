@@ -16,6 +16,7 @@ import {
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { useSubscription } from '@/hooks/useSubscription'
 
 // Interface do freelancer conforme tabela REAL no Supabase
 // Campos confirmados: id, user_id, nome, email, tipo_pessoa, cpf, cnpj,
@@ -51,6 +52,7 @@ export default function Perfil() {
   const [profile, setProfile] = useState<FreelancerProfile>(initialProfile)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const subscription = useSubscription()
 
   // Carrega dados do perfil ao montar o componente
   useEffect(() => {
@@ -493,64 +495,144 @@ export default function Perfil() {
               </svg>
               <CardTitle className="text-base">Plano e Assinatura</CardTitle>
             </div>
-            <Badge variant="outline" className="bg-gray-100">Free</Badge>
+            <Badge
+              variant={subscription.getStatusColor()}
+              className={
+                subscription.subscriptionStatus === 'trial' && subscription.daysRemaining <= 2
+                  ? 'bg-red-100 text-red-700 border-red-200'
+                  : subscription.subscriptionStatus === 'trial'
+                    ? 'bg-primary/10 text-primary border-primary/20'
+                    : ''
+              }
+            >
+              {subscription.planType === 'pro' ? 'Pro' : 'Free'}
+            </Badge>
           </div>
           <p className="text-xs text-gray-500">Gerencie seu plano de assinatura</p>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Status do plano atual */}
+          {/* Status do trial */}
+          {subscription.subscriptionStatus === 'trial' && (
+            <div className={`rounded-lg border p-4 ${
+              subscription.daysRemaining <= 2
+                ? 'border-red-200 bg-red-50'
+                : 'border-primary/20 bg-primary/5'
+            }`}>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-gray-700">Periodo de teste</span>
+                <span className={`text-sm font-semibold ${
+                  subscription.daysRemaining <= 2 ? 'text-red-600' : 'text-primary'
+                }`}>
+                  {subscription.daysRemaining === 0
+                    ? 'Termina hoje!'
+                    : subscription.daysRemaining === 1
+                      ? '1 dia restante'
+                      : `${subscription.daysRemaining} dias restantes`}
+                </span>
+              </div>
+              {/* Barra de progresso */}
+              <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
+                <div
+                  className={`h-2 rounded-full transition-all ${
+                    subscription.daysRemaining <= 2 ? 'bg-red-500' : 'bg-primary'
+                  }`}
+                  style={{ width: `${Math.max(0, (subscription.daysRemaining / 7) * 100)}%` }}
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                Aproveite todas as funcionalidades durante o teste gratuito.
+              </p>
+            </div>
+          )}
+
+          {/* Trial expirado */}
+          {subscription.subscriptionStatus === 'expired' && (
+            <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="text-sm font-medium text-red-700">Periodo de teste expirado</span>
+              </div>
+              <p className="text-xs text-red-600 mb-3">
+                Assine o Plano Pro para continuar criando propostas e contratos.
+              </p>
+            </div>
+          )}
+
+          {/* Plano Pro ativo */}
+          {subscription.planType === 'pro' && subscription.subscriptionStatus === 'active' && (
+            <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span className="text-sm font-medium text-green-700">Plano Pro ativo</span>
+              </div>
+              <p className="text-xs text-green-600">
+                Voce tem acesso ilimitado a todas as funcionalidades.
+              </p>
+            </div>
+          )}
+
+          {/* Beneficios do Plano Pro */}
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-sm font-medium text-gray-700">Plano Free</span>
-              <span className="text-xs text-gray-500">Ativo</span>
+              <span className="text-sm font-medium text-gray-700">Plano Pro</span>
+              <span className="text-sm font-semibold text-primary">R$ 29/mes</span>
             </div>
             <div className="space-y-2">
               <div className="flex items-start gap-2">
                 <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span className="text-sm text-gray-600">Ate 5 propostas por mes</span>
+                <span className="text-sm text-gray-600">Propostas e contratos ilimitados</span>
               </div>
               <div className="flex items-start gap-2">
                 <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span className="text-sm text-gray-600">Ate 3 contratos por mes</span>
+                <span className="text-sm text-gray-600">Clientes ilimitados</span>
               </div>
               <div className="flex items-start gap-2">
                 <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span className="text-sm text-gray-600">Perfil publico basico</span>
+                <span className="text-sm text-gray-600">Perfil publico completo</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm text-gray-600">Controle financeiro avancado</span>
+              </div>
+              <div className="flex items-start gap-2">
+                <svg className="mt-0.5 h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-sm text-gray-600">Suporte prioritario</span>
               </div>
             </div>
           </div>
 
-          {/* Acoes do plano */}
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Button
-              className="flex-1"
-              disabled
-              title="Em breve"
-            >
-              <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-              </svg>
-              Assinar plano Premium
-            </Button>
-            <Button
-              variant="outline"
-              className="flex-1 text-gray-400"
-              disabled
-              title="Disponivel apenas para assinantes"
-            >
-              Cancelar assinatura
-            </Button>
-          </div>
-
-          <p className="text-xs text-gray-500 text-center">
-            Integracao com pagamento em breve. Aguarde novidades!
-          </p>
+          {/* Botao de upgrade */}
+          {subscription.planType !== 'pro' && (
+            <div className="space-y-3">
+              <Button
+                className="w-full"
+                size="lg"
+                onClick={() => toast.info('Pagamento em breve! Estamos preparando a integracao.')}
+              >
+                <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+                Assinar Plano Pro
+              </Button>
+              <p className="text-xs text-gray-500 text-center">
+                Pagamento seguro via Stripe. Cancele quando quiser.
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
 

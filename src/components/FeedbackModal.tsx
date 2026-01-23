@@ -18,7 +18,9 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
+import { useLocation } from 'react-router-dom'
 
 interface FeedbackModalProps {
   open: boolean
@@ -36,6 +38,7 @@ const feedbackTypes = [
 
 export default function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
   const { user } = useAuth()
+  const location = useLocation()
 
   const [tipo, setTipo] = useState('')
   const [nome, setNome] = useState(user?.user_metadata?.nome || '')
@@ -50,7 +53,7 @@ export default function FeedbackModal({ open, onOpenChange }: FeedbackModalProps
     setMensagem('')
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
     // Validacao
@@ -71,16 +74,38 @@ export default function FeedbackModal({ open, onOpenChange }: FeedbackModalProps
       return
     }
 
+    if (!user?.id) {
+      toast.error('Voce precisa estar logado para enviar feedback')
+      return
+    }
+
     setIsSubmitting(true)
 
-    // Simula envio (por enquanto apenas UI)
-    setTimeout(() => {
-      console.log('Feedback enviado:', { tipo, nome, email, mensagem })
-      toast.success('Feedback enviado com sucesso!')
+    try {
+      const { error } = await supabase.from('feedbacks').insert({
+        user_id: user.id,
+        tipo,
+        nome: nome.trim(),
+        email: email.trim(),
+        mensagem: mensagem.trim(),
+        pagina: location.pathname,
+      })
+
+      if (error) {
+        console.error('Erro ao salvar feedback:', error)
+        toast.error('Erro ao enviar feedback. Tente novamente.')
+        return
+      }
+
+      toast.success('Feedback enviado com sucesso! Obrigado.')
       resetForm()
       onOpenChange(false)
+    } catch (err) {
+      console.error('Erro ao enviar feedback:', err)
+      toast.error('Erro ao enviar feedback. Tente novamente.')
+    } finally {
       setIsSubmitting(false)
-    }, 500)
+    }
   }
 
   return (

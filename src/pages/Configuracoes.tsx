@@ -198,7 +198,7 @@ export default function Configuracoes() {
     setIsDeleting(true)
 
     try {
-      // Verifica a senha
+      // Verifica a senha primeiro
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email: user.email || '',
         password: deleteConfirmPassword,
@@ -210,53 +210,72 @@ export default function Configuracoes() {
         return
       }
 
-      // Chamar funcao RPC para excluir conta completamente
-      // Esta funcao exclui todos os dados E o usuario do auth.users
-      const { error: rpcError } = await supabase.rpc('delete_user_account')
+      // Pega o token de acesso atual
+      const { data: sessionData } = await supabase.auth.getSession()
+      const accessToken = sessionData.session?.access_token
 
-      if (rpcError) {
-        console.error('[DeleteAccount] Erro na funcao RPC:', rpcError)
-
-        // Se a funcao RPC nao existir, tenta excluir manualmente os dados
-        if (rpcError.code === 'PGRST202' || rpcError.message?.includes('function')) {
-          console.log('[DeleteAccount] Funcao RPC nao encontrada, excluindo dados manualmente...')
-
-          // Buscar o freelancer_id do usuario
-          const { data: freelancer } = await supabase
-            .from('freelancers')
-            .select('id')
-            .eq('user_id', user.id)
-            .single()
-
-          const freelancerId = freelancer?.id
-
-          // Excluir dados relacionados (em ordem de dependencias)
-          await supabase.from('registros_financeiros').delete().eq('user_id', user.id)
-          await supabase.from('contracts').delete().eq('user_id', user.id)
-          if (freelancerId) {
-            await supabase.from('propostas').delete().eq('freelancer_id', freelancerId)
-            await supabase.from('clients').delete().eq('freelancer_id', freelancerId)
-          }
-          await supabase.from('user_settings').delete().eq('user_id', user.id)
-          await supabase.from('perfis_publicos').delete().eq('user_id', user.id)
-          await supabase.from('freelancers').delete().eq('user_id', user.id)
-
-          // Fazer logout
-          await signOut()
-
-          toast.warning('Dados excluidos. Para remover completamente a conta, execute a migracao SQL.')
-          navigate('/')
-          return
-        }
-
-        throw rpcError
+      if (!accessToken) {
+        toast.error('Sessao expirada. Faca login novamente.')
+        setIsDeleting(false)
+        return
       }
 
-      // Fazer logout (a sessao sera invalidada automaticamente)
+      // Tenta chamar a Edge Function para exclusao completa
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+      const response = await fetch(`${supabaseUrl}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password: deleteConfirmPassword }),
+      })
+
+      if (response.ok) {
+        // Edge Function executou com sucesso
+        await signOut()
+        toast.success('Conta excluida com sucesso!')
+        navigate('/')
+        return
+      }
+
+      // Se a Edge Function falhar (404 ou erro), tenta o fallback
+      console.log('[DeleteAccount] Edge Function indisponivel, usando fallback...')
+
+      // Fallback: Tenta a funcao RPC
+      const { error: rpcError } = await supabase.rpc('prepare_account_deletion')
+
+      if (rpcError) {
+        console.log('[DeleteAccount] RPC falhou, excluindo manualmente...', rpcError)
+
+        // Buscar o freelancer_id do usuario
+        const { data: freelancer } = await supabase
+          .from('freelancers')
+          .select('id')
+          .eq('user_id', user.id)
+          .single()
+
+        const freelancerId = freelancer?.id
+
+        // Excluir dados relacionados (em ordem de dependencias)
+        await supabase.from('registros_financeiros').delete().eq('user_id', user.id)
+        await supabase.from('contracts').delete().eq('user_id', user.id)
+        await supabase.from('proposals').delete().eq('user_id', user.id)
+        if (freelancerId) {
+          await supabase.from('clients').delete().eq('freelancer_id', freelancerId)
+          await supabase.from('public_profiles').delete().eq('freelancer_id', freelancerId)
+        }
+        await supabase.from('user_settings').delete().eq('user_id', user.id)
+        await supabase.from('feedbacks').delete().eq('user_id', user.id)
+        await supabase.from('freelancers').delete().eq('user_id', user.id)
+      }
+
+      // Fazer logout
       await signOut()
 
-      toast.success('Conta excluida com sucesso')
+      toast.warning('Dados excluidos. A exclusao completa da conta requer a Edge Function configurada.')
       navigate('/')
+
     } catch (err) {
       console.error('Erro ao excluir conta:', err)
       toast.error('Erro ao excluir conta. Tente novamente.')

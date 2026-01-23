@@ -6,6 +6,7 @@ import Landing from '@/pages/Landing'
 import Login from '@/pages/auth/Login'
 import Signup from '@/pages/auth/Signup'
 import RecuperarSenha from '@/pages/auth/RecuperarSenha'
+import RedefinirSenha from '@/pages/auth/RedefinirSenha'
 import Dashboard from '@/pages/Dashboard'
 import Documentos from '@/pages/Documentos'
 import Propostas from '@/pages/Propostas'
@@ -35,6 +36,7 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/cadastro" element={<Signup />} />
         <Route path="/recuperar-senha" element={<RecuperarSenha />} />
+        <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
         {/* Paginas Institucionais */}
         <Route path="/ajuda" element={<Ajuda />} />

@@ -99,7 +99,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Recuperar senha
   async function resetPassword(email: string) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/login`,
+      redirectTo: `${window.location.origin}/redefinir-senha`,
     })
     return { error }
   }

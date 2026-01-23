@@ -1,5 +1,6 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { cn } from '@/lib/utils'
+import { useSubscription } from '@/hooks/useSubscription'
 
 interface NavItem {
   name: string
@@ -24,6 +25,10 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ onNavigate }: SidebarProps) {
+  const navigate = useNavigate()
+  const subscription = useSubscription()
+  const showUpgradeCta = subscription.planType !== 'pro' && !subscription.loading
+
   return (
     <aside className="h-full w-64 border-r border-gray-200 bg-white">
       <div className="flex h-full flex-col">
@@ -54,6 +59,26 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
             </NavLink>
           ))}
         </nav>
+
+        {/* Upgrade CTA */}
+        {showUpgradeCta && (
+          <div className="mx-4 mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
+            <p className="text-xs font-medium text-gray-700 mb-2">
+              {subscription.subscriptionStatus === 'trial'
+                ? `Teste gratis: ${subscription.daysRemaining} dia${subscription.daysRemaining !== 1 ? 's' : ''}`
+                : 'Ative o Plano PRO'}
+            </p>
+            <button
+              onClick={() => {
+                navigate('/app/perfil')
+                onNavigate?.()
+              }}
+              className="w-full rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90 transition-colors"
+            >
+              Ativar Plano PRO
+            </button>
+          </div>
+        )}
 
         {/* Footer */}
         <div className="border-t border-gray-200 p-4">

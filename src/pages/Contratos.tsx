@@ -20,6 +20,7 @@ import { useSettingsContext } from '@/contexts/SettingsContext'
 import { useCreateContract, useUpdateContract, getContractById } from '@/hooks/useContracts'
 import { getProposalById } from '@/hooks/useDocuments'
 import { findOrCreateClient } from '@/hooks/useClients'
+import { useSubscription } from '@/hooks/useSubscription'
 import { generatePdf } from '@/lib/pdf'
 import {
   maskCPF,
@@ -68,6 +69,7 @@ export default function Contratos() {
   const { formatDate: formatDateFromSettings } = useSettingsContext()
   const createContract = useCreateContract()
   const updateContract = useUpdateContract()
+  const subscription = useSubscription()
 
   const editId = searchParams.get('id')
   const fromProposalId = searchParams.get('proposal')
@@ -570,6 +572,33 @@ CPF:
         </p>
       </div>
 
+      {/* Bloqueio pos-trial */}
+      {!subscription.canCreateDocuments && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 p-5 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-shrink-0">
+              <div className="rounded-full bg-amber-100 p-3">
+                <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H9m3-4V8m0 0V6m0 2h2m-2 0H9m12 4a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-amber-800">Periodo de teste encerrado</h3>
+              <p className="mt-1 text-sm text-amber-700">
+                Seu periodo de teste gratuito terminou. Assine o Plano Pro para continuar criando propostas e contratos ilimitados.
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate('/app/perfil')}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Assinar Plano Pro
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Layout Split */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Formulario */}
@@ -940,7 +969,7 @@ CPF:
               variant="outline"
               className="flex-1 h-11"
               onClick={handleSave}
-              disabled={isLoading}
+              disabled={isLoading || !subscription.canCreateDocuments}
             >
               {isLoading ? (
                 <span className="loading-spinner mr-2 h-4 w-4 border-gray-300 border-t-gray-600"></span>
@@ -951,7 +980,11 @@ CPF:
               )}
               {isLoading ? 'Salvando...' : 'Salvar'}
             </Button>
-            <Button className="flex-1 h-11 btn-primary" onClick={handleGenerate}>
+            <Button
+              className="flex-1 h-11 btn-primary"
+              onClick={handleGenerate}
+              disabled={!subscription.canCreateDocuments}
+            >
               <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>

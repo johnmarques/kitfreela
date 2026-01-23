@@ -16,6 +16,7 @@ import { useFreelancerContext } from '@/contexts/FreelancerContext'
 import { useSettingsContext } from '@/contexts/SettingsContext'
 import { useCreateProposal, useUpdateProposal, useProposalById, getErrorMessage } from '@/hooks/useProposals'
 import { findOrCreateClient } from '@/hooks/useClients'
+import { useSubscription } from '@/hooks/useSubscription'
 import type { ProposalStatus } from '@/types'
 
 export default function Propostas() {
@@ -25,6 +26,7 @@ export default function Propostas() {
   const { formatDate } = useSettingsContext()
   const createProposal = useCreateProposal()
   const updateProposal = useUpdateProposal()
+  const subscription = useSubscription()
 
   // Detecta ID da proposta na URL para modo edicao
   const editingId = searchParams.get('id')
@@ -317,6 +319,33 @@ export default function Propostas() {
         </p>
       </div>
 
+      {/* Bloqueio pos-trial */}
+      {!subscription.canCreateDocuments && (
+        <div className="rounded-lg bg-amber-50 border border-amber-200 p-5 animate-fade-in">
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+            <div className="flex-shrink-0">
+              <div className="rounded-full bg-amber-100 p-3">
+                <svg className="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m0 0v2m0-2h2m-2 0H9m3-4V8m0 0V6m0 2h2m-2 0H9m12 4a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <div className="flex-1">
+              <h3 className="text-base font-semibold text-amber-800">Periodo de teste encerrado</h3>
+              <p className="mt-1 text-sm text-amber-700">
+                Seu periodo de teste gratuito terminou. Assine o Plano Pro para continuar criando propostas e contratos ilimitados.
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate('/app/perfil')}
+              className="bg-amber-600 hover:bg-amber-700 text-white"
+            >
+              Assinar Plano Pro
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Loading ao carregar proposta existente */}
       {editingId && loadingExisting && (
         <div className="rounded-lg bg-blue-50 border border-blue-100 p-4 animate-fade-in">
@@ -540,7 +569,8 @@ export default function Propostas() {
                     freelancerLoading ||
                     !freelancerId ||
                     !!(editingId && loadingExisting) || // Aguarda carregar proposta existente
-                    !!(currentProposalId && showPreview) // Desabilita apos gerar documento
+                    !!(currentProposalId && showPreview) || // Desabilita apos gerar documento
+                    !subscription.canCreateDocuments // Bloqueio pos-trial
                   }
                 >
                   {isSaving ? (
@@ -569,7 +599,8 @@ export default function Propostas() {
                     isGenerating ||
                     freelancerLoading ||
                     !freelancerId ||
-                    !!(editingId && loadingExisting) // Aguarda carregar proposta existente
+                    !!(editingId && loadingExisting) || // Aguarda carregar proposta existente
+                    !subscription.canCreateDocuments // Bloqueio pos-trial
                   }
                 >
                   {isGenerating ? (

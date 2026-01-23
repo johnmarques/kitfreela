@@ -39,20 +39,20 @@ export default function Landing() {
       <section className="border-b border-gray-100">
         <div className="container mx-auto px-4 py-12 sm:px-6 sm:py-16 md:py-24 lg:py-32">
           <div className="mx-auto max-w-3xl text-center">
-            <Badge className="mb-4 sm:mb-6" variant="outline">
+            <Badge className="mb-4 sm:mb-6 bg-primary/10 text-primary border-primary/20">
               Feito por freelancer, para freelancers
             </Badge>
-            <h1 className="mb-4 text-2xl font-semibold text-gray-900 sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
-             <span style={{ color: 'hsl(164 24% 46%)' }}>Organize seu trabalho</span> de forma simples
+            <h1 className="mb-4 text-2xl font-bold text-gray-900 sm:mb-6 sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl">
+              Propostas e contratos <span style={{ color: 'hsl(164 24% 46%)' }}>em minutos</span>
             </h1>
-            <p className="mb-6 text-base text-gray-600 sm:mb-8 sm:text-lg md:text-xl">
-              Propostas profissionais, contratos padronizados e controle financeiro básico.
-              Tudo em um so lugar, sem complicação.
+            <p className="mb-6 text-base text-gray-600 sm:mb-8 sm:text-lg md:text-xl max-w-2xl mx-auto">
+              Pare de perder tempo com Word e planilhas.
+              Crie documentos profissionais, organize clientes e controle pagamentos.
             </p>
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Link to="/cadastro" className="w-full sm:w-auto shadow-lg">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Comecar agora - É GRÁTIS
+              <Link to="/cadastro" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
+                  Comecar gratis
                 </Button>
               </Link>
               <Button
@@ -64,7 +64,7 @@ export default function Landing() {
                 Ver como funciona
               </Button>
             </div>
-            <p className="mt-4 text-xs sm:text-sm text-gray-500">Sem cartão de crédito. Sem enrolacao.</p>
+            <p className="mt-4 text-xs sm:text-sm text-gray-500">Teste gratis por 7 dias. Sem cartao de credito.</p>
           </div>
         </div>
       </section>
@@ -301,20 +301,179 @@ export default function Landing() {
         </div>
       </section>
 
+      {/* Precos */}
+      <section id="precos" className="border-b border-gray-100">
+        <div className="container mx-auto px-4 py-12 sm:px-6 sm:py-16 md:py-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <h2 className="mb-3 text-xl font-semibold text-gray-900 sm:mb-4 sm:text-2xl md:text-3xl">
+              Planos simples e transparentes
+            </h2>
+            <p className="mb-8 text-base text-gray-600 sm:mb-12 sm:text-lg">
+              Escolha o que faz sentido para voce
+            </p>
+          </div>
+
+          {/* Cards de Planos */}
+          <div className="mx-auto grid max-w-4xl gap-6 md:grid-cols-2">
+            {/* Plano Free */}
+            <Card className="relative border-2 border-gray-200">
+              <CardContent className="pt-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Plano Free</h3>
+                  <p className="text-sm text-gray-500">Para conhecer a plataforma</p>
+                </div>
+                <div className="mb-6">
+                  <span className="text-3xl font-bold text-gray-900">R$ 0</span>
+                  <span className="text-gray-500">/mes</span>
+                </div>
+                <p className="text-xs text-gray-500 mb-6">Teste gratis por 7 dias. Sem complicacao.</p>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Acesso total por 7 dias</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Ate 3 propostas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Ate 2 contratos</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Perfil publico basico</span>
+                  </li>
+                </ul>
+                <Link to="/cadastro" className="block">
+                  <Button variant="outline" className="w-full">
+                    Comecar teste gratis
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+
+            {/* Plano PRO */}
+            <Card className="relative border-2 border-primary shadow-lg shadow-primary/10">
+              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                <Badge className="bg-primary text-white">Recomendado</Badge>
+              </div>
+              <CardContent className="pt-6">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">Plano PRO</h3>
+                  <p className="text-sm text-gray-500">Para freelancers ativos</p>
+                </div>
+                <div className="mb-6">
+                  <span className="text-3xl font-bold text-gray-900">R$ 19,90</span>
+                  <span className="text-gray-500">/mes</span>
+                </div>
+                <p className="text-xs text-gray-500 mb-6">Cancele quando quiser. Sem fidelidade.</p>
+                <ul className="space-y-3 mb-6">
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Propostas ilimitadas</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Contratos ilimitados</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Clientes ilimitados</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Perfil publico completo</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Controle financeiro avancado</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <svg className="mt-0.5 h-4 w-4 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm text-gray-600">Suporte prioritario</span>
+                  </li>
+                </ul>
+                <Link to="/cadastro" className="block">
+                  <Button className="w-full">
+                    Ativar Plano PRO
+                  </Button>
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* FAQ */}
+          <div className="mx-auto max-w-2xl mt-16">
+            <h3 className="text-lg font-semibold text-gray-900 text-center mb-8">Perguntas frequentes</h3>
+            <div className="space-y-4">
+              <div className="rounded-lg border border-gray-200 p-4">
+                <h4 className="font-medium text-gray-900 mb-2">Como funciona o teste gratis?</h4>
+                <p className="text-sm text-gray-600">
+                  Voce tem 7 dias para testar todas as funcionalidades do KitFreela.
+                  Nao pedimos cartao de credito. Depois do teste, voce decide se quer continuar.
+                </p>
+              </div>
+              <div className="rounded-lg border border-gray-200 p-4">
+                <h4 className="font-medium text-gray-900 mb-2">Preciso de cartao de credito para comecar?</h4>
+                <p className="text-sm text-gray-600">
+                  Nao. O teste gratis nao pede cartao. Voce so precisa de um email valido para criar sua conta.
+                </p>
+              </div>
+              <div className="rounded-lg border border-gray-200 p-4">
+                <h4 className="font-medium text-gray-900 mb-2">Posso cancelar a qualquer momento?</h4>
+                <p className="text-sm text-gray-600">
+                  Sim. Nao tem fidelidade nem multa. Voce cancela quando quiser direto na plataforma.
+                </p>
+              </div>
+              <div className="rounded-lg border border-gray-200 p-4">
+                <h4 className="font-medium text-gray-900 mb-2">Meus dados ficam salvos se eu cancelar?</h4>
+                <p className="text-sm text-gray-600">
+                  Seus dados ficam guardados por 30 dias apos o cancelamento. Se quiser voltar,
+                  esta tudo la esperando voce.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Final */}
       <section id="cta-final" className="border-b border-gray-100">
         <div className="container mx-auto px-4 py-12 sm:px-6 sm:py-16 md:py-20">
           <div className="mx-auto max-w-3xl text-center">
             <h2 className="mb-3 text-xl font-semibold text-gray-900 sm:mb-4 sm:text-2xl md:text-3xl">
-              Pare de perder tempo com planilhas
+              Pronto para organizar seu trabalho?
             </h2>
             <p className="mb-6 text-base text-gray-600 sm:mb-8 sm:text-lg">
-              Comece a organizar seu trabalho hoje. Grátis para começar.
+              Comece agora e veja como e facil ser mais profissional.
             </p>
-            <Link to="/cadastro" className='shadow-lg'>
-              <Button size="lg" className="w-full sm:w-auto">Criar minha conta gratis</Button>
+            <Link to="/cadastro">
+              <Button size="lg" className="w-full sm:w-auto shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
+                Comecar gratis
+              </Button>
             </Link>
-            <p className="mt-4 text-xs sm:text-sm text-gray-500">Sem cartão de crédito. Configure em minutos.</p>
+            <p className="mt-4 text-xs sm:text-sm text-gray-500">Teste gratis por 7 dias. Sem cartao de credito.</p>
           </div>
         </div>
       </section>
@@ -344,7 +503,7 @@ export default function Landing() {
                 </li>
                 <li>
                   <button
-                    onClick={() => scrollToSection('cta-final')}
+                    onClick={() => scrollToSection('precos')}
                     className="hover:text-gray-900 transition-colors"
                   >
                     Preços

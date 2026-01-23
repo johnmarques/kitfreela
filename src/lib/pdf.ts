@@ -172,7 +172,7 @@ function processContractText(text: string): string {
       continue
     }
 
-    // Linha de assinatura ou data/local
+    // Linha de assinatura ou data/local - alinhadas a esquerda
     if (line.match(/^(Local|Cidade|Data|Fortaleza|São Paulo|Rio de Janeiro)/i) ||
         line.match(/^\d{1,2}\s+de\s+\w+\s+de\s+\d{4}/i) ||
         line.match(/^_{10,}/) ||
@@ -183,7 +183,7 @@ function processContractText(text: string): string {
       }
       html += `
         <div style="margin: 20px 0; page-break-inside: avoid;">
-          <p style="font-size: 13px; line-height: 1.6; color: #374151; margin: 0; text-align: center;">
+          <p style="font-size: 13px; line-height: 1.6; color: #374151; margin: 0; text-align: left;">
             ${line}
           </p>
         </div>
@@ -191,17 +191,19 @@ function processContractText(text: string): string {
       continue
     }
 
-    // Bloco de assinatura (CONTRATANTE / CONTRATADO)
+    // Bloco de assinatura (CONTRATANTE / CONTRATADO) - alinhado a esquerda
     if (line.match(/^(CONTRATANTE|CONTRATADO|PRESTADOR|TOMADOR)s?:?$/i)) {
       if (inList) {
         html += '</div>'
         inList = false
       }
       html += `
-        <div style="margin-top: 40px; page-break-inside: avoid;">
-          <p style="font-size: 12px; font-weight: 600; color: #6b7280; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-            ${line}
-          </p>
+        <div style="margin-top: 40px; max-width: 280px; page-break-inside: avoid;">
+          <div style="border-top: 1px solid #374151; padding-top: 10px;">
+            <p style="font-size: 12px; font-weight: 600; color: #374151; margin: 0; text-transform: uppercase; letter-spacing: 0.5px;">
+              ${line.replace(/:$/, '')}
+            </p>
+          </div>
         </div>
       `
       continue
@@ -235,7 +237,7 @@ function generateContractHtml(doc: Document): string {
     const processedContent = processContractText(doc.contract_text)
 
     return `
-      <div style="font-family: 'Georgia', 'Times New Roman', serif; max-width: 750px; margin: 0 auto; padding: 50px 60px; color: #1f2937; background: #fff;">
+      <div style="font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 750px; margin: 0 auto; padding: 50px 60px; color: #1f2937; background: #fff;">
         <!-- Conteudo do Contrato -->
         <div style="min-height: calc(100% - 60px);">
           ${processedContent}
@@ -243,7 +245,7 @@ function generateContractHtml(doc: Document): string {
 
         <!-- Rodape -->
         <div style="border-top: 1px solid #d1d5db; padding-top: 15px; margin-top: 50px; text-align: center;">
-          <p style="margin: 0; font-size: 10px; color: #9ca3af; font-family: 'Segoe UI', Arial, sans-serif;">
+          <p style="margin: 0; font-size: 10px; color: #9ca3af;">
             Documento gerado por KitFreela • www.kitfreela.com.br
           </p>
         </div>
@@ -253,13 +255,13 @@ function generateContractHtml(doc: Document): string {
 
   // Fallback: template simplificado (para contratos antigos sem contract_text)
   return `
-    <div style="font-family: 'Georgia', 'Times New Roman', serif; max-width: 750px; margin: 0 auto; padding: 50px 60px; color: #1f2937; background: #fff;">
+    <div style="font-family: 'Inter', 'Segoe UI', Helvetica, Arial, sans-serif; max-width: 750px; margin: 0 auto; padding: 50px 60px; color: #1f2937; background: #fff;">
       <!-- Header -->
       <div style="text-align: center; margin-bottom: 40px; border-bottom: 2px solid #374151; padding-bottom: 20px;">
         <h1 style="margin: 0; font-size: 22px; font-weight: 700; color: #1f2937; letter-spacing: 1px;">
           CONTRATO DE PRESTAÇÃO DE SERVIÇOS
         </h1>
-        <p style="margin: 10px 0 0; color: #6b7280; font-size: 12px; font-family: 'Segoe UI', Arial, sans-serif;">
+        <p style="margin: 10px 0 0; color: #6b7280; font-size: 12px;">
           Data: ${formatDate(doc.created_at)}
         </p>
       </div>
@@ -318,16 +320,16 @@ function generateContractHtml(doc: Document): string {
         </div>
       ` : ''}
 
-      <!-- Assinaturas -->
+      <!-- Assinaturas - alinhadas a esquerda -->
       <div style="margin-top: 80px; page-break-inside: avoid;">
-        <div style="display: flex; justify-content: space-between;">
-          <div style="text-align: center; width: 45%;">
+        <div style="max-width: 280px;">
+          <div style="margin-bottom: 50px;">
             <div style="border-top: 1px solid #374151; padding-top: 10px; margin-top: 50px;">
               <p style="margin: 0; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contratante</p>
               <p style="margin: 6px 0 0; color: #6b7280; font-size: 12px;">${doc.client_name}</p>
             </div>
           </div>
-          <div style="text-align: center; width: 45%;">
+          <div>
             <div style="border-top: 1px solid #374151; padding-top: 10px; margin-top: 50px;">
               <p style="margin: 0; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">Contratado</p>
             </div>
@@ -337,7 +339,7 @@ function generateContractHtml(doc: Document): string {
 
       <!-- Rodape -->
       <div style="border-top: 1px solid #d1d5db; padding-top: 15px; margin-top: 50px; text-align: center;">
-        <p style="margin: 0; font-size: 10px; color: #9ca3af; font-family: 'Segoe UI', Arial, sans-serif;">
+        <p style="margin: 0; font-size: 10px; color: #9ca3af;">
           Documento gerado por KitFreela • www.kitfreela.com.br
         </p>
       </div>

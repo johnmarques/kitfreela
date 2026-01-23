@@ -1,8 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useDashboard, emptyMetrics } from '@/hooks/useDashboard'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSubscription } from '@/hooks/useSubscription'
 import FeedbackModal from '@/components/FeedbackModal'
 import { MessageSquare } from 'lucide-react'
 
@@ -21,9 +23,11 @@ function getFirstName(fullName: string): string {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate()
   const { data: metrics = emptyMetrics, isLoading } = useDashboard()
   const { user } = useAuth()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const subscription = useSubscription()
 
   // Pega o nome completo e extrai apenas o primeiro nome
   const fullName = user?.user_metadata?.nome || user?.email?.split('@')[0] || 'Usuario'
@@ -56,6 +60,67 @@ export default function Dashboard() {
       </div>
 
       <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+
+      {/* Banner de Trial */}
+      {subscription.subscriptionStatus === 'trial' && subscription.planType !== 'pro' && (
+        <div className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-primary/10 p-2">
+                <svg className="h-5 w-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-900">
+                  Voce esta no teste gratis
+                  <span className="ml-2 text-primary font-semibold">
+                    {subscription.daysRemaining === 0
+                      ? '— Ultimo dia!'
+                      : subscription.daysRemaining === 1
+                        ? '— 1 dia restante'
+                        : `— ${subscription.daysRemaining} dias restantes`}
+                  </span>
+                </p>
+                <p className="text-xs text-gray-500">Ative o Plano PRO para continuar usando apos o teste</p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => navigate('/app/perfil')}
+              className="shrink-0"
+            >
+              Ativar Plano PRO
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Banner Trial Expirado */}
+      {subscription.subscriptionStatus === 'expired' && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="rounded-full bg-amber-100 p-2">
+                <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-amber-800">Seu teste gratis terminou</p>
+                <p className="text-xs text-amber-600">Ative o Plano PRO para continuar criando propostas e contratos</p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              onClick={() => navigate('/app/perfil')}
+              className="shrink-0 bg-amber-600 hover:bg-amber-700"
+            >
+              Ativar Plano PRO
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Métricas Principais */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
