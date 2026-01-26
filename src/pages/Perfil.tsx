@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -13,46 +14,107 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog'
 import { useAuth } from '@/contexts/AuthContext'
 import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 import { useSubscription } from '@/hooks/useSubscription'
+import PlanUpgradeModal from '@/components/PlanUpgradeModal'
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://kprgoxojtzexuclwhotp.supabase.co'
 
 // Interface do freelancer conforme tabela REAL no Supabase
-// Campos confirmados: id, user_id, nome, email, tipo_pessoa, cpf, cnpj,
-// cidade, estado, whatsapp, email_profissional, assinatura_padrao, etc.
+// Campos confirmados: id, user_id, nome, email, person_type, cpf, cnpj,
+// city, state, whatsapp, professional_email, default_signature, etc.
 interface FreelancerProfile {
   nome: string
   email: string
-  tipo_pessoa: 'pf' | 'pj'
+  person_type: 'pf' | 'pj'
   cpf: string
   cnpj: string
-  cidade: string
-  estado: string
+  city: string
+  state: string
   whatsapp: string
-  email_profissional: string
-  assinatura_padrao: string
+  professional_email: string
+  default_signature: string
 }
 
 const initialProfile: FreelancerProfile = {
   nome: '',
   email: '',
-  tipo_pessoa: 'pf',
+  person_type: 'pf',
   cpf: '',
   cnpj: '',
-  cidade: '',
-  estado: '',
+  city: '',
+  state: '',
   whatsapp: '',
-  email_profissional: '',
-  assinatura_padrao: '',
+  professional_email: '',
+  default_signature: '',
 }
 
 export default function Perfil() {
-  const { user } = useAuth()
+  const navigate = useNavigate()
+  const { user, session, signOut } = useAuth()
   const [profile, setProfile] = useState<FreelancerProfile>(initialProfile)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const subscription = useSubscription()
+
+  // Funcao para excluir conta
+  async function handleDeleteAccount() {
+    if (deleteConfirmText !== 'EXCLUIR') {
+      toast.error('Digite EXCLUIR para confirmar')
+      return
+    }
+
+    if (!session?.access_token) {
+      toast.error('Voce precisa estar logado')
+      return
+    }
+
+    setDeleting(true)
+
+    try {
+      const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Erro ao excluir conta')
+      }
+
+      toast.success('Conta excluida com sucesso')
+
+      // Faz logout e redireciona
+      await signOut()
+      navigate('/')
+    } catch (err) {
+      console.error('Erro ao excluir conta:', err)
+      toast.error(err instanceof Error ? err.message : 'Erro ao excluir conta')
+    } finally {
+      setDeleting(false)
+      setDeleteConfirmText('')
+    }
+  }
 
   // Carrega dados do perfil ao montar o componente
   useEffect(() => {
@@ -78,14 +140,14 @@ export default function Perfil() {
           setProfile({
             nome: data.nome || '',
             email: data.email || user.email || '',
-            tipo_pessoa: data.tipo_pessoa || 'pf',
+            person_type: data.person_type || 'pf',
             cpf: data.cpf || '',
             cnpj: data.cnpj || '',
-            cidade: data.cidade || '',
-            estado: data.estado || '',
+            city: data.city || '',
+            state: data.state || '',
             whatsapp: data.whatsapp || '',
-            email_profissional: data.email_profissional || '',
-            assinatura_padrao: data.assinatura_padrao || '',
+            professional_email: data.professional_email || '',
+            default_signature: data.default_signature || '',
           })
         } else {
           // Usuario novo: preenche com dados do auth
@@ -119,17 +181,17 @@ export default function Perfil() {
         user_id: user.id,
         nome: profile.nome,
         email: profile.email,
-        tipo_pessoa: profile.tipo_pessoa,
-        cidade: profile.cidade || null,
-        estado: profile.estado || null,
+        person_type: profile.person_type,
+        city: profile.city || null,
+        state: profile.state || null,
         whatsapp: profile.whatsapp || null,
-        email_profissional: profile.email_profissional || null,
-        assinatura_padrao: profile.assinatura_padrao || null,
+        professional_email: profile.professional_email || null,
+        default_signature: profile.default_signature || null,
         updated_at: new Date().toISOString(),
       }
 
       // Adiciona campos especificos baseado no tipo de pessoa
-      if (profile.tipo_pessoa === 'pf') {
+      if (profile.person_type === 'pf') {
         payload.cpf = profile.cpf || null
         payload.cnpj = null
       } else {
@@ -271,8 +333,8 @@ export default function Perfil() {
         </CardHeader>
         <CardContent>
           <RadioGroup
-            value={profile.tipo_pessoa}
-            onValueChange={(value) => updateField('tipo_pessoa', value)}
+            value={profile.person_type}
+            onValueChange={(value) => updateField('person_type', value)}
             className="flex gap-4"
           >
             <div className="flex items-center space-x-2">
@@ -306,7 +368,7 @@ export default function Perfil() {
             Dados fiscais
           </CardTitle>
           <p className="text-xs text-gray-500">
-            {profile.tipo_pessoa === 'pf' ? 'Dados da pessoa física' : 'Dados da pessoa jurídica'}
+            {profile.person_type === 'pf' ? 'Dados da pessoa física' : 'Dados da pessoa jurídica'}
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -315,7 +377,7 @@ export default function Perfil() {
           </p>
 
           {/* Campos para Pessoa Física */}
-          {profile.tipo_pessoa === 'pf' && (
+          {profile.person_type === 'pf' && (
             <div className="space-y-2">
               <Label htmlFor="cpf">CPF</Label>
               <Input
@@ -328,7 +390,7 @@ export default function Perfil() {
           )}
 
           {/* Campos para Pessoa Jurídica */}
-          {profile.tipo_pessoa === 'pj' && (
+          {profile.person_type === 'pj' && (
             <div className="space-y-2">
               <Label htmlFor="cnpj">CNPJ</Label>
               <Input
@@ -346,15 +408,15 @@ export default function Perfil() {
               <Input
                 id="cidadePerfil"
                 placeholder="Fortaleza"
-                value={profile.cidade}
-                onChange={(e) => updateField('cidade', e.target.value)}
+                value={profile.city}
+                onChange={(e) => updateField('city', e.target.value)}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="estadoPerfil">Estado</Label>
               <Select
-                value={profile.estado}
-                onValueChange={(value) => updateField('estado', value)}
+                value={profile.state}
+                onValueChange={(value) => updateField('state', value)}
               >
                 <SelectTrigger id="estadoPerfil">
                   <SelectValue placeholder="Selecione" />
@@ -432,8 +494,8 @@ export default function Perfil() {
               id="emailProfissional"
               type="email"
               placeholder="seuemail@exemplo.com"
-              value={profile.email_profissional}
-              onChange={(e) => updateField('email_profissional', e.target.value)}
+              value={profile.professional_email}
+              onChange={(e) => updateField('professional_email', e.target.value)}
             />
           </div>
         </CardContent>
@@ -459,8 +521,8 @@ export default function Perfil() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Textarea
-            value={profile.assinatura_padrao}
-            onChange={(e) => updateField('assinatura_padrao', e.target.value)}
+            value={profile.default_signature}
+            onChange={(e) => updateField('default_signature', e.target.value)}
             placeholder="Seu Nome&#10;Sua Profissao&#10;Whatsapp: (00) 0 0000-0000"
             rows={4}
           />
@@ -579,7 +641,7 @@ export default function Perfil() {
           <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
             <div className="flex items-center justify-between mb-3">
               <span className="text-sm font-medium text-gray-700">Plano Pro</span>
-              <span className="text-sm font-semibold text-primary">R$ 29/mes</span>
+              <span className="text-sm font-semibold text-primary">R$ 19,90/mes</span>
             </div>
             <div className="space-y-2">
               <div className="flex items-start gap-2">
@@ -621,7 +683,7 @@ export default function Perfil() {
               <Button
                 className="w-full"
                 size="lg"
-                onClick={() => toast.info('Pagamento em breve! Estamos preparando a integracao.')}
+                onClick={() => setUpgradeModalOpen(true)}
               >
                 <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
@@ -656,6 +718,110 @@ export default function Perfil() {
           <p className="text-sm text-gray-500">Configurações de notificação em breve.</p>
         </CardContent>
       </Card>
+
+      {/* Exclusão de Conta */}
+      <Card className="border-red-200">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base text-red-600">
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
+            </svg>
+            Excluir Conta
+          </CardTitle>
+          <p className="text-xs text-gray-500">Encerre permanentemente sua conta</p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+            <h4 className="font-medium text-red-800 mb-2">Aviso Importante</h4>
+            <ul className="text-sm text-red-700 space-y-1">
+              <li>• Esta acao e <strong>irreversivel</strong></li>
+              <li>• Voce perdera <strong>todo o acesso</strong> a plataforma</li>
+              <li>• Se voce possui uma assinatura ativa, ela sera <strong>automaticamente cancelada</strong></li>
+              <li>• Nao sera possivel recuperar sua conta apos a exclusao</li>
+            </ul>
+          </div>
+
+          {subscription.hasActiveSubscription && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+              <div className="flex items-center gap-2 mb-2">
+                <svg className="h-5 w-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="font-medium text-amber-800">Assinatura Ativa</span>
+              </div>
+              <p className="text-sm text-amber-700">
+                Voce possui uma assinatura ativa do Plano Pro. Ao excluir sua conta, a assinatura
+                sera cancelada imediatamente e voce nao sera cobrado novamente.
+              </p>
+            </div>
+          )}
+
+          <p className="text-sm text-gray-600">
+            Se voce deseja apenas cancelar sua assinatura, a unica forma e excluindo sua conta.
+            Apos a exclusao, voce pode criar uma nova conta com o mesmo e-mail, mas todos os
+            dados anteriores serao perdidos permanentemente.
+          </p>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full">
+                <svg className="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Excluir minha conta
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-red-600">Confirmar Exclusao de Conta</AlertDialogTitle>
+                <AlertDialogDescription className="space-y-4">
+                  <p>
+                    Esta acao e <strong>irreversivel</strong>. Ao excluir sua conta:
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li>Voce perdera todo o acesso a plataforma</li>
+                    <li>Sua assinatura sera cancelada (se houver)</li>
+                    <li>Nao sera possivel recuperar a conta</li>
+                  </ul>
+                  <div className="pt-4">
+                    <Label htmlFor="confirmDelete" className="text-sm font-medium">
+                      Digite <span className="font-bold text-red-600">EXCLUIR</span> para confirmar:
+                    </Label>
+                    <Input
+                      id="confirmDelete"
+                      className="mt-2"
+                      placeholder="EXCLUIR"
+                      value={deleteConfirmText}
+                      onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+                      disabled={deleting}
+                    />
+                  </div>
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting} onClick={() => setDeleteConfirmText('')}>
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDeleteAccount}
+                  disabled={deleteConfirmText !== 'EXCLUIR' || deleting}
+                  className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
+                >
+                  {deleting ? 'Excluindo...' : 'Excluir Permanentemente'}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </CardContent>
+      </Card>
+
+      {/* Modal de Upgrade */}
+      <PlanUpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} />
     </div>
   )
 }
