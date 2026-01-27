@@ -219,6 +219,12 @@ async function updateClientIfNeeded(
   if (!existing.cidade && input.cidade) updates.cidade = input.cidade
   if (!existing.estado && input.estado) updates.estado = input.estado
 
+  // Atualizar tipo_pessoa se foi informado e e diferente do existente
+  // Isso corrige o bug onde o tipo sempre ficava como 'pf'
+  if (input.tipo_pessoa && input.tipo_pessoa !== existing.tipo_pessoa) {
+    updates.tipo_pessoa = input.tipo_pessoa
+  }
+
   // Se nao ha nada para atualizar, retorna
   if (Object.keys(updates).length === 0) {
     return

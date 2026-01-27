@@ -64,23 +64,23 @@ const initialProfile: FreelancerProfile = {
 
 export default function Perfil() {
   const navigate = useNavigate()
-  const { user, session, signOut } = useAuth()
+  const { user, signOut } = useAuth()
   const [profile, setProfile] = useState<FreelancerProfile>(initialProfile)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
-  const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleteConfirmPassword, setDeleteConfirmPassword] = useState('')
   const subscription = useSubscription()
 
-  // Funcao para excluir conta
+  // Funcao para excluir conta (mesmo comportamento de Configuracoes.tsx)
   async function handleDeleteAccount() {
-    if (deleteConfirmText !== 'EXCLUIR') {
-      toast.error('Digite EXCLUIR para confirmar')
+    if (!deleteConfirmPassword) {
+      toast.error('Digite sua senha para confirmar')
       return
     }
 
-    if (!session?.access_token) {
+    if (!user?.id || !user?.email) {
       toast.error('Voce precisa estar logado')
       return
     }
@@ -88,31 +88,82 @@ export default function Perfil() {
     setDeleting(true)
 
     try {
+      // Verifica a senha primeiro
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: user.email,
+        password: deleteConfirmPassword,
+      })
+
+      if (signInError) {
+        toast.error('Senha incorreta')
+        setDeleting(false)
+        return
+      }
+
+      // Pega o token de acesso atual
+      const { data: sessionData } = await supabase.auth.getSession()
+      const accessToken = sessionData.session?.access_token
+
+      if (!accessToken) {
+        toast.error('Sessao expirada. Faca login novamente.')
+        setDeleting(false)
+        return
+      }
+
+      // Tenta chamar a Edge Function para exclusao completa
       const response = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({ password: deleteConfirmPassword }),
       })
 
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Erro ao excluir conta')
+      if (response.ok) {
+        await signOut()
+        toast.success('Conta excluida com sucesso!')
+        navigate('/')
+        return
       }
 
-      toast.success('Conta excluida com sucesso')
+      // Fallback se a Edge Function falhar
+      console.log('[DeleteAccount] Edge Function indisponivel, usando fallback...')
 
-      // Faz logout e redireciona
+      const { error: rpcError } = await supabase.rpc('prepare_account_deletion')
+
+      if (rpcError) {
+        console.log('[DeleteAccount] RPC falhou, excluindo manualmente...', rpcError)
+
+        const { data: freelancer } = await supabase
+          .from('freelancers')
+          .select('id')
+          .eq('user_id', user.id)
+          .single()
+
+        const freelancerId = freelancer?.id
+
+        await supabase.from('registros_financeiros').delete().eq('user_id', user.id)
+        await supabase.from('contracts').delete().eq('user_id', user.id)
+        await supabase.from('proposals').delete().eq('user_id', user.id)
+        if (freelancerId) {
+          await supabase.from('clients').delete().eq('freelancer_id', freelancerId)
+          await supabase.from('public_profiles').delete().eq('freelancer_id', freelancerId)
+        }
+        await supabase.from('user_settings').delete().eq('user_id', user.id)
+        await supabase.from('feedbacks').delete().eq('user_id', user.id)
+        await supabase.from('freelancers').delete().eq('user_id', user.id)
+      }
+
       await signOut()
+      toast.warning('Dados excluidos. A exclusao completa da conta requer a Edge Function configurada.')
       navigate('/')
     } catch (err) {
       console.error('Erro ao excluir conta:', err)
       toast.error(err instanceof Error ? err.message : 'Erro ao excluir conta')
     } finally {
       setDeleting(false)
-      setDeleteConfirmText('')
+      setDeleteConfirmPassword('')
     }
   }
 
@@ -784,32 +835,33 @@ export default function Perfil() {
                     Esta acao e <strong>irreversivel</strong>. Ao excluir sua conta:
                   </p>
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>Voce perdera todo o acesso a plataforma</li>
+                    <li>Todos os seus dados serao permanentemente excluidos</li>
                     <li>Sua assinatura sera cancelada (se houver)</li>
                     <li>Nao sera possivel recuperar a conta</li>
                   </ul>
-                  <div className="pt-4">
-                    <Label htmlFor="confirmDelete" className="text-sm font-medium">
-                      Digite <span className="font-bold text-red-600">EXCLUIR</span> para confirmar:
-                    </Label>
+                  <div className="rounded-md bg-red-50 border border-red-200 p-3 mt-4">
+                    <p className="text-sm text-red-700">
+                      Para confirmar a exclusao da sua conta, digite sua senha abaixo:
+                    </p>
                     <Input
-                      id="confirmDelete"
+                      id="confirmDeletePassword"
+                      type="password"
                       className="mt-2"
-                      placeholder="EXCLUIR"
-                      value={deleteConfirmText}
-                      onChange={(e) => setDeleteConfirmText(e.target.value.toUpperCase())}
+                      placeholder="Digite sua senha"
+                      value={deleteConfirmPassword}
+                      onChange={(e) => setDeleteConfirmPassword(e.target.value)}
                       disabled={deleting}
                     />
                   </div>
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel disabled={deleting} onClick={() => setDeleteConfirmText('')}>
+                <AlertDialogCancel disabled={deleting} onClick={() => setDeleteConfirmPassword('')}>
                   Cancelar
                 </AlertDialogCancel>
                 <AlertDialogAction
                   onClick={handleDeleteAccount}
-                  disabled={deleteConfirmText !== 'EXCLUIR' || deleting}
+                  disabled={!deleteConfirmPassword || deleting}
                   className="bg-red-600 hover:bg-red-700 focus:ring-red-600"
                 >
                   {deleting ? 'Excluindo...' : 'Excluir Permanentemente'}

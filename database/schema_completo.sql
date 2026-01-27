@@ -350,8 +350,10 @@ CREATE TABLE IF NOT EXISTS feedbacks (
 
   -- Dados do feedback
   tipo VARCHAR(50) NOT NULL,
+  nome VARCHAR(255),
   mensagem TEXT NOT NULL,
   email VARCHAR(255),
+  pagina VARCHAR(255),
 
   -- Timestamps
   created_at TIMESTAMPTZ DEFAULT NOW()
