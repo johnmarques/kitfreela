@@ -145,6 +145,19 @@ export function useSubscription() {
           // Se trial expirou e ainda esta como trial, atualiza para expired
           if (subscriptionStatus === 'trial' && !isTrialActive && planType === 'free') {
             subscriptionStatus = 'expired'
+
+            // Atualiza no banco para registrar blocked_at (trigger automatico)
+            supabase
+              .from('freelancers')
+              .update({ subscription_status: 'expired' })
+              .eq('user_id', user.id)
+              .then(({ error }) => {
+                if (error) {
+                  console.error('Erro ao atualizar status para expired:', error)
+                } else {
+                  console.log('Status atualizado para expired no banco')
+                }
+              })
           }
         }
 
