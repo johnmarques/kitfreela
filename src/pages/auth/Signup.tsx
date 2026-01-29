@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Checkbox } from '@/components/ui/checkbox'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
@@ -15,6 +16,8 @@ export default function Signup() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [acceptedTerms, setAcceptedTerms] = useState(false)
+  const [marketingOptIn, setMarketingOptIn] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -22,6 +25,11 @@ export default function Signup() {
 
     if (!nome || !email || !password || !confirmPassword) {
       toast.error('Preencha todos os campos')
+      return
+    }
+
+    if (!acceptedTerms) {
+      toast.error('Voce precisa aceitar os termos de uso para continuar')
       return
     }
 
@@ -38,7 +46,7 @@ export default function Signup() {
     setLoading(true)
 
     try {
-      const { error } = await signUp(email, password, nome)
+      const { error } = await signUp(email, password, nome, { marketingOptIn })
 
       if (error) {
         if (error.message.includes('User already registered')) {
@@ -140,22 +148,49 @@ export default function Signup() {
                   />
                 </div>
 
+                {/* Aceitar Termos - Obrigatório */}
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="terms"
+                    checked={acceptedTerms}
+                    onCheckedChange={(checked) => setAcceptedTerms(checked === true)}
+                    disabled={loading}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="terms" className="text-sm text-gray-600 font-normal leading-tight cursor-pointer">
+                    Li e aceito os{' '}
+                    <Link to="/termos" className="text-gray-900 underline hover:text-gray-700" target="_blank">
+                      Termos de Uso
+                    </Link>{' '}
+                    e a{' '}
+                    <Link to="/privacidade" className="text-gray-900 underline hover:text-gray-700" target="_blank">
+                      Politica de Privacidade
+                    </Link>
+                  </Label>
+                </div>
+
+                {/* Marketing - Opcional */}
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="marketing"
+                    checked={marketingOptIn}
+                    onCheckedChange={(checked) => setMarketingOptIn(checked === true)}
+                    disabled={loading}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="marketing" className="text-sm text-gray-500 font-normal leading-tight cursor-pointer">
+                    Quero receber novidades e conteudos do KitFreela por e-mail
+                  </Label>
+                </div>
+
                 {/* Botão */}
                 <Button
                   type="submit"
                   className="w-full bg-gray-900 text-white hover:bg-gray-800"
-                  disabled={loading}
+                  disabled={loading || !acceptedTerms}
                 >
                   {loading ? 'Criando conta...' : 'Criar conta'}
                 </Button>
-
-                {/* Termos */}
-                <p className="text-center text-xs text-gray-500">
-                  Ao criar a conta você concorda com os{' '}
-                  <Link to="/termos" className="text-gray-900 underline">
-                    termos de uso
-                  </Link>
-                </p>
 
                 {/* Link para login */}
                 <p className="text-center text-sm text-gray-600">

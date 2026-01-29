@@ -1,12 +1,14 @@
-import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useDashboard, emptyMetrics } from '@/hooks/useDashboard'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSubscription } from '@/hooks/useSubscription'
 import FeedbackModal from '@/components/FeedbackModal'
+import PlanUpgradeModal from '@/components/PlanUpgradeModal'
 import { MessageSquare } from 'lucide-react'
+import { toast } from 'sonner'
 
 // Formatar valor em reais
 function formatCurrency(value: number): string {
@@ -23,11 +25,28 @@ function getFirstName(fullName: string): string {
 }
 
 export default function Dashboard() {
-  const navigate = useNavigate()
   const { data: metrics = emptyMetrics, isLoading } = useDashboard()
   const { user } = useAuth()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
   const subscription = useSubscription()
+  const [searchParams, setSearchParams] = useSearchParams()
+
+  // Trata callback do checkout Stripe
+  useEffect(() => {
+    const checkoutStatus = searchParams.get('checkout')
+
+    if (checkoutStatus === 'success') {
+      toast.success('Assinatura realizada com sucesso! Bem-vindo ao Plano PRO.')
+      // Recarrega dados da subscription
+      subscription.reload()
+      // Limpa query params
+      setSearchParams({})
+    } else if (checkoutStatus === 'canceled') {
+      toast.info('Assinatura cancelada. Voce pode tentar novamente a qualquer momento.')
+      setSearchParams({})
+    }
+  }, [searchParams, setSearchParams, subscription.reload])
 
   // Pega o nome completo e extrai apenas o primeiro nome
   const fullName = user?.user_metadata?.nome || user?.email?.split('@')[0] || 'Usuario'
@@ -60,9 +79,10 @@ export default function Dashboard() {
       </div>
 
       <FeedbackModal open={feedbackOpen} onOpenChange={setFeedbackOpen} />
+      <PlanUpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} />
 
-      {/* Banner de Trial */}
-      {subscription.subscriptionStatus === 'trial' && subscription.planType !== 'pro' && (
+      {/* Banner de Trial - só exibe após carregar dados reais */}
+      {!subscription.loading && subscription.subscriptionStatus === 'trial' && subscription.planType !== 'pro' && (
         <div className="rounded-lg border border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -87,7 +107,7 @@ export default function Dashboard() {
             </div>
             <Button
               size="sm"
-              onClick={() => navigate('/app/perfil')}
+              onClick={() => setUpgradeModalOpen(true)}
               className="shrink-0"
             >
               Ativar Plano PRO
@@ -96,8 +116,8 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Banner Trial Expirado */}
-      {subscription.subscriptionStatus === 'expired' && (
+      {/* Banner Trial Expirado - só exibe após carregar dados reais */}
+      {!subscription.loading && subscription.subscriptionStatus === 'expired' && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
@@ -113,7 +133,7 @@ export default function Dashboard() {
             </div>
             <Button
               size="sm"
-              onClick={() => navigate('/app/perfil')}
+              onClick={() => setUpgradeModalOpen(true)}
               className="shrink-0 bg-amber-600 hover:bg-amber-700"
             >
               Ativar Plano PRO

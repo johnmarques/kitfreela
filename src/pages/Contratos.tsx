@@ -21,6 +21,7 @@ import { useCreateContract, useUpdateContract, getContractById } from '@/hooks/u
 import { getProposalById } from '@/hooks/useDocuments'
 import { findOrCreateClient } from '@/hooks/useClients'
 import { useSubscription } from '@/hooks/useSubscription'
+import PlanUpgradeModal from '@/components/PlanUpgradeModal'
 import { generatePdf } from '@/lib/pdf'
 import {
   maskCPF,
@@ -106,6 +107,7 @@ export default function Contratos() {
   const [proposalId, setProposalId] = useState<string | undefined>()
   const [isLoading, setIsLoading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
 
   // Carregar dados se editando ou vindo de proposta
   useEffect(() => {
@@ -590,7 +592,7 @@ CPF:
               </p>
             </div>
             <Button
-              onClick={() => navigate('/app/perfil')}
+              onClick={() => setUpgradeModalOpen(true)}
               className="bg-amber-600 hover:bg-amber-700 text-white"
             >
               Assinar Plano Pro
@@ -1033,6 +1035,9 @@ CPF:
           </Card>
         </div>
       </div>
+
+      {/* Modal de Upgrade */}
+      <PlanUpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} />
     </div>
   )
 }

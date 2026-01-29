@@ -59,7 +59,7 @@ export function FreelancerProvider({ children }: FreelancerProviderProps) {
       const result = await ensureFreelancerExists(
         user.id,
         user.email,
-        user.user_metadata?.nome
+        user.user_metadata
       )
 
       console.log('[FreelancerProvider] Freelancer pronto! ID:', result.id)

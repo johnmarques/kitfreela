@@ -1,4 +1,4 @@
-import { NavLink, useNavigate } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useSubscription } from '@/hooks/useSubscription'
 
@@ -22,18 +22,18 @@ const navItems: NavItem[] = [
 
 interface SidebarProps {
   onNavigate?: () => void
+  onUpgradeClick?: () => void
 }
 
-export default function Sidebar({ onNavigate }: SidebarProps) {
-  const navigate = useNavigate()
+export default function Sidebar({ onNavigate, onUpgradeClick }: SidebarProps) {
   const subscription = useSubscription()
   const showUpgradeCta = subscription.planType !== 'pro' && !subscription.loading
 
   return (
-    <aside className="h-full w-64 border-r border-gray-200 bg-white">
-      <div className="flex h-full flex-col">
+    <aside className="h-full w-64  border-gray-200 bg-white">
+      <div className="flex h-full flex-col border-gray-200 px-4 md:px-6" >
         {/* Logo */}
-        <div className="flex align-center h-16 items-center border-b border-gray-200 px-6">
+        <div className="flex align-center h-16 items-center px-4 md:px-6  border-gray-200 px-6">
           <h1 className="text-xl font-semibold text-gray-900">Kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></h1>
         </div>
 
@@ -62,18 +62,32 @@ export default function Sidebar({ onNavigate }: SidebarProps) {
 
         {/* Upgrade CTA */}
         {showUpgradeCta && (
-          <div className="mx-4 mb-4 rounded-lg border border-primary/20 bg-primary/5 p-3">
-            <p className="text-xs font-medium text-gray-700 mb-2">
-              {subscription.subscriptionStatus === 'trial'
+          <div className={cn(
+            "mx-4 mb-4 rounded-lg border p-3",
+            subscription.isBlocked
+              ? "border-amber-300 bg-amber-50"
+              : "border-primary/20 bg-primary/5"
+          )}>
+            <p className={cn(
+              "text-xs font-medium mb-2",
+              subscription.isBlocked ? "text-amber-700" : "text-gray-700"
+            )}>
+              {subscription.subscriptionStatus === 'trial' && subscription.daysRemaining > 0
                 ? `Teste gratis: ${subscription.daysRemaining} dia${subscription.daysRemaining !== 1 ? 's' : ''}`
-                : 'Ative o Plano PRO'}
+                : subscription.subscriptionStatus === 'trial' && subscription.daysRemaining === 0
+                  ? 'Ultimo dia de teste!'
+                  : subscription.isBlocked
+                    ? 'Teste encerrado'
+                    : 'Ative o Plano PRO'}
             </p>
             <button
-              onClick={() => {
-                navigate('/app/perfil')
-                onNavigate?.()
-              }}
-              className="w-full rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-primary/90 transition-colors"
+              onClick={() => onUpgradeClick?.()}
+              className={cn(
+                "w-full rounded-md px-3 py-1.5 text-xs font-medium text-white transition-colors",
+                subscription.isBlocked
+                  ? "bg-amber-600 hover:bg-amber-700"
+                  : "bg-primary hover:bg-primary/90"
+              )}
             >
               Ativar Plano PRO
             </button>

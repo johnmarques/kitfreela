@@ -35,6 +35,10 @@ export interface FreelancerRecord {
   notif_followup: boolean
   notif_expiring_proposals: boolean
   notif_pending_payments: boolean
+  // Consentimentos
+  accepted_terms_at: string | null
+  marketing_opt_in: boolean
+  marketing_opt_in_at: string | null
   created_at: string
   updated_at: string
 }
@@ -44,6 +48,9 @@ interface FreelancerCreateData {
   user_id: string
   nome: string
   email: string
+  accepted_terms_at?: string | null
+  marketing_opt_in?: boolean
+  marketing_opt_in_at?: string | null
 }
 
 // Tipo para atualizar o freelancer
@@ -93,12 +100,24 @@ async function fetchFreelancer(userId: string): Promise<FreelancerRecord | null>
 async function createFreelancer(data: FreelancerCreateData): Promise<FreelancerRecord> {
   console.log('[createFreelancer] Criando freelancer para user_id:', data.user_id)
 
+  // Define datas do trial: 7 dias a partir de agora
+  const now = new Date()
+  const trialEndsAt = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+
   const { data: created, error } = await supabase
     .from('freelancers')
     .insert({
       user_id: data.user_id,
       nome: data.nome,
       email: data.email,
+      accepted_terms_at: data.accepted_terms_at || null,
+      marketing_opt_in: data.marketing_opt_in || false,
+      marketing_opt_in_at: data.marketing_opt_in_at || null,
+      // Campos de trial - 7 dias gratis
+      plan_type: 'free',
+      subscription_status: 'trial',
+      trial_started_at: now.toISOString(),
+      trial_ends_at: trialEndsAt.toISOString(),
     })
     .select()
     .single()
@@ -126,7 +145,7 @@ async function createFreelancer(data: FreelancerCreateData): Promise<FreelancerR
 export async function ensureFreelancerExists(
   userId: string,
   userEmail: string,
-  userName?: string
+  userMetadata?: Record<string, unknown>
 ): Promise<FreelancerRecord> {
   console.log('[ensureFreelancerExists] Verificando freelancer para user_id:', userId)
 
@@ -141,12 +160,15 @@ export async function ensureFreelancerExists(
   // Nao existe, criar um novo
   console.log('[ensureFreelancerExists] Freelancer nao encontrado. Criando...')
 
-  const nome = userName || userEmail.split('@')[0] || 'Freelancer'
+  const nome = (userMetadata?.nome as string) || userEmail.split('@')[0] || 'Freelancer'
 
   return createFreelancer({
     user_id: userId,
     nome,
     email: userEmail,
+    accepted_terms_at: userMetadata?.accepted_terms_at as string | null,
+    marketing_opt_in: (userMetadata?.marketing_opt_in as boolean) || false,
+    marketing_opt_in_at: userMetadata?.marketing_opt_in_at as string | null,
   })
 }
 
@@ -200,7 +222,7 @@ export function useFreelancer() {
       const freelancer = await ensureFreelancerExists(
         user.id,
         user.email,
-        user.user_metadata?.nome
+        user.user_metadata
       )
 
       return freelancer

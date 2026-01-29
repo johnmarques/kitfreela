@@ -2,11 +2,15 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 import { User, Session, AuthError } from '@supabase/supabase-js'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 
+interface SignUpOptions {
+  marketingOptIn?: boolean
+}
+
 interface AuthContextType {
   user: User | null
   session: Session | null
   loading: boolean
-  signUp: (email: string, password: string, nome: string) => Promise<{ error: AuthError | null }>
+  signUp: (email: string, password: string, nome: string, options?: SignUpOptions) => Promise<{ error: AuthError | null }>
   signIn: (email: string, password: string) => Promise<{ error: AuthError | null; session: Session | null }>
   signOut: () => Promise<void>
   resetPassword: (email: string) => Promise<{ error: AuthError | null }>
@@ -53,12 +57,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [])
 
   // Cadastro
-  async function signUp(email: string, password: string, nome: string) {
+  async function signUp(email: string, password: string, nome: string, options?: SignUpOptions) {
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { nome },
+        data: {
+          nome,
+          accepted_terms_at: new Date().toISOString(),
+          marketing_opt_in: options?.marketingOptIn || false,
+          marketing_opt_in_at: options?.marketingOptIn ? new Date().toISOString() : null,
+        },
       },
     })
     return { error }

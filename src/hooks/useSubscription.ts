@@ -6,6 +6,17 @@ import { supabase } from '@/lib/supabase'
 export type PlanType = 'free' | 'pro'
 export type SubscriptionStatus = 'trial' | 'active' | 'expired' | 'blocked'
 
+// Status do Stripe
+export type StripeSubscriptionStatus =
+  | 'trialing'
+  | 'active'
+  | 'canceled'
+  | 'incomplete'
+  | 'incomplete_expired'
+  | 'past_due'
+  | 'unpaid'
+  | 'paused'
+
 export interface SubscriptionData {
   planType: PlanType
   subscriptionStatus: SubscriptionStatus
@@ -15,6 +26,12 @@ export interface SubscriptionData {
   isTrialActive: boolean
   isBlocked: boolean
   canCreateDocuments: boolean
+  // Dados do Stripe (quando houver assinatura)
+  stripeSubscriptionId: string | null
+  stripeStatus: StripeSubscriptionStatus | null
+  currentPeriodEnd: Date | null
+  cancelAtPeriodEnd: boolean
+  hasActiveSubscription: boolean
 }
 
 const initialData: SubscriptionData = {
@@ -26,6 +43,12 @@ const initialData: SubscriptionData = {
   isTrialActive: true,
   isBlocked: false,
   canCreateDocuments: true,
+  // Dados Stripe
+  stripeSubscriptionId: null,
+  stripeStatus: null,
+  currentPeriodEnd: null,
+  cancelAtPeriodEnd: false,
+  hasActiveSubscription: false,
 }
 
 export function useSubscription() {
@@ -56,17 +79,36 @@ export function useSubscription() {
     }
 
     try {
-      const { data: freelancer, error } = await supabase
-        .from('freelancers')
-        .select('plan_type, subscription_status, trial_started_at, trial_ends_at, created_at')
-        .eq('user_id', user.id)
-        .single()
+      // Busca dados do freelancer e subscription do Stripe em paralelo
+      const [freelancerResult, stripeSubResult] = await Promise.all([
+        supabase
+          .from('freelancers')
+          .select('plan_type, subscription_status, trial_started_at, trial_ends_at, created_at, stripe_customer_id')
+          .eq('user_id', user.id)
+          .single(),
+        supabase
+          .from('subscriptions')
+          .select('stripe_subscription_id, status, plan_type, current_period_end, cancel_at_period_end')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
+      ])
 
-      if (error && error.code !== 'PGRST116') {
-        console.error('Erro ao carregar subscription:', error)
+      const freelancer = freelancerResult.data
+      const stripeSubscription = stripeSubResult.data
+      const freelancerError = freelancerResult.error
+
+      if (freelancerError && freelancerError.code !== 'PGRST116') {
+        console.error('Erro ao carregar subscription:', freelancerError)
         setLoading(false)
         return
       }
+
+      // Verifica se tem assinatura Stripe ativa
+      const hasActiveStripeSubscription =
+        stripeSubscription &&
+        ['active', 'trialing'].includes(stripeSubscription.status)
 
       if (freelancer) {
         // Parse das datas
@@ -83,20 +125,34 @@ export function useSubscription() {
         const daysRemaining = calculateDaysRemaining(trialEndsAt)
         const isTrialActive = isTrialStillActive(trialEndsAt)
 
-        // Determina status real
-        const planType: PlanType = (freelancer.plan_type as PlanType) || 'free'
-        let subscriptionStatus: SubscriptionStatus = (freelancer.subscription_status as SubscriptionStatus) || 'trial'
+        // Determina status real baseado em Stripe ou trial local
+        let planType: PlanType = 'free'
+        let subscriptionStatus: SubscriptionStatus = 'trial'
 
-        // Se trial expirou e ainda esta como trial, atualiza para expired
-        if (subscriptionStatus === 'trial' && !isTrialActive && planType === 'free') {
-          subscriptionStatus = 'expired'
+        if (hasActiveStripeSubscription) {
+          // Tem assinatura Stripe ativa
+          planType = 'pro'
+          subscriptionStatus = stripeSubscription.status === 'trialing' ? 'trial' : 'active'
+        } else if (freelancer.plan_type === 'pro' && freelancer.subscription_status === 'active') {
+          // Fallback para dados locais (sincronizados pelo trigger)
+          planType = 'pro'
+          subscriptionStatus = 'active'
+        } else {
+          // Usa trial local
+          planType = (freelancer.plan_type as PlanType) || 'free'
+          subscriptionStatus = (freelancer.subscription_status as SubscriptionStatus) || 'trial'
+
+          // Se trial expirou e ainda esta como trial, atualiza para expired
+          if (subscriptionStatus === 'trial' && !isTrialActive && planType === 'free') {
+            subscriptionStatus = 'expired'
+          }
         }
 
         // Define se pode criar documentos
         const canCreateDocuments =
           planType === 'pro' ||
           subscriptionStatus === 'active' ||
-          (subscriptionStatus === 'trial' && isTrialActive)
+          (subscriptionStatus === 'trial' && (hasActiveStripeSubscription || isTrialActive))
 
         const isBlocked = subscriptionStatus === 'blocked' || subscriptionStatus === 'expired'
 
@@ -109,6 +165,14 @@ export function useSubscription() {
           isTrialActive,
           isBlocked,
           canCreateDocuments,
+          // Dados Stripe
+          stripeSubscriptionId: stripeSubscription?.stripe_subscription_id || null,
+          stripeStatus: stripeSubscription?.status as StripeSubscriptionStatus || null,
+          currentPeriodEnd: stripeSubscription?.current_period_end
+            ? new Date(stripeSubscription.current_period_end)
+            : null,
+          cancelAtPeriodEnd: stripeSubscription?.cancel_at_period_end || false,
+          hasActiveSubscription: hasActiveStripeSubscription || false,
         })
       } else {
         // Usuario novo - inicia trial
@@ -124,6 +188,12 @@ export function useSubscription() {
           isTrialActive: true,
           isBlocked: false,
           canCreateDocuments: true,
+          // Dados Stripe
+          stripeSubscriptionId: null,
+          stripeStatus: null,
+          currentPeriodEnd: null,
+          cancelAtPeriodEnd: false,
+          hasActiveSubscription: false,
         })
       }
     } catch (err) {

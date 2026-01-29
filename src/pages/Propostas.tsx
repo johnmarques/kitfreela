@@ -17,6 +17,7 @@ import { useSettingsContext } from '@/contexts/SettingsContext'
 import { useCreateProposal, useUpdateProposal, useProposalById, getErrorMessage } from '@/hooks/useProposals'
 import { findOrCreateClient } from '@/hooks/useClients'
 import { useSubscription } from '@/hooks/useSubscription'
+import PlanUpgradeModal from '@/components/PlanUpgradeModal'
 import type { ProposalStatus } from '@/types'
 
 export default function Propostas() {
@@ -52,6 +53,7 @@ export default function Propostas() {
   const [showPreview, setShowPreview] = useState(false)
   const [savedProposalId, setSavedProposalId] = useState<string | null>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const [upgradeModalOpen, setUpgradeModalOpen] = useState(false)
 
   // Busca proposta existente se tiver ID na URL
   const { data: existingProposal, isLoading: loadingExisting } = useProposalById(editingId || undefined)
@@ -337,7 +339,7 @@ export default function Propostas() {
               </p>
             </div>
             <Button
-              onClick={() => navigate('/app/perfil')}
+              onClick={() => setUpgradeModalOpen(true)}
               className="bg-amber-600 hover:bg-amber-700 text-white"
             >
               Assinar Plano Pro
@@ -750,6 +752,9 @@ export default function Propostas() {
           </Card>
         </div>
       </div>
+
+      {/* Modal de Upgrade */}
+      <PlanUpgradeModal open={upgradeModalOpen} onOpenChange={setUpgradeModalOpen} />
     </div>
   )
 }

@@ -33,7 +33,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 items-center justify-end border-b border-gray-200 bg-white px-4 md:px-6">
+    <header className="sticky top-0 z-40 flex h-16 items-center justify-end border-b border-gray-200 bg-white px-4 md:px-6">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button className="flex items-center gap-2 rounded-lg px-2 py-1.5 transition-colors hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2">
