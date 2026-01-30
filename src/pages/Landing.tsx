@@ -18,8 +18,8 @@ export default function Landing() {
       <nav className="border-b border-gray-200">
         <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-semibold text-gray-900">
-              Kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 brand-logo">
+              kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
             </h1>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
@@ -430,7 +430,7 @@ export default function Landing() {
               <div className="rounded-lg border border-gray-200 p-4">
                 <h4 className="font-medium text-gray-900 mb-2">Como funciona o teste gratis?</h4>
                 <p className="text-sm text-gray-600">
-                  Voce tem 7 dias para testar todas as funcionalidades do KitFreela.
+                  Voce tem 7 dias para testar todas as funcionalidades do kitFreela.
                   Nao pedimos cartao de credito. Depois do teste, voce decide se quer continuar.
                 </p>
               </div>
@@ -483,8 +483,8 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-10 sm:px-6 sm:py-14">
           <div className="grid gap-8 sm:gap-10 grid-cols-2 md:grid-cols-4">
             <div>
-              <h3 className="mb-4 font-semibold text-gray-900">
-                Kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
+              <h3 className="mb-4 font-semibold text-gray-900 brand-logo">
+                kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
               </h3>
               <p className="text-sm text-gray-600">
                 Gestão profissional para freelancers solo
@@ -546,7 +546,7 @@ export default function Landing() {
             </div>
           </div>
           <div className="mt-12 border-t border-gray-200 pt-8 text-center">
-            <p className="text-sm text-gray-500">© 2026 KitFreela. Todos os direitos reservados.</p>
+            <p className="text-sm text-gray-500">© 2026 kitFreela. Todos os direitos reservados.</p>
           </div>
         </div>
       </footer>

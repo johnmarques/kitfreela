@@ -9,8 +9,8 @@ export default function Ajuda() {
       <nav className="border-b border-gray-200 bg-white">
         <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <Link to="/" className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-semibold text-gray-900">
-              Kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 brand-logo">
+              kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
             </h1>
           </Link>
           <Link to="/">
@@ -26,7 +26,7 @@ export default function Ajuda() {
             Central de Ajuda
           </h1>
           <p className="mb-8 text-gray-600">
-            Encontre respostas para suas duvidas sobre o KitFreela
+            Encontre respostas para suas duvidas sobre o kitFreela
           </p>
 
           <div className="space-y-6">

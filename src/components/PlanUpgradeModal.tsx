@@ -39,7 +39,7 @@ export default function PlanUpgradeModal({ open, onOpenChange }: PlanUpgradeModa
             <Badge className="bg-primary text-white">Recomendado</Badge>
           </div>
           <DialogDescription>
-            Desbloqueie todo o potencial do KitFreela
+            Desbloqueie todo o potencial do kitFreela
           </DialogDescription>
         </DialogHeader>
 

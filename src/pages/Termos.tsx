@@ -8,8 +8,8 @@ export default function Termos() {
       <nav className="border-b border-gray-200 bg-white">
         <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <Link to="/" className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-semibold text-gray-900">
-              Kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 brand-logo">
+              kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
             </h1>
           </Link>
           <Link to="/">
@@ -32,7 +32,7 @@ export default function Termos() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">1. Aceitacao dos Termos</h2>
               <p className="text-gray-600">
-                Ao acessar e utilizar o KitFreela, voce concorda com estes Termos de Uso.
+                Ao acessar e utilizar o kitFreela, voce concorda com estes Termos de Uso.
                 Se voce nao concordar com alguma parte destes termos, nao devera utilizar
                 nossos servicos.
               </p>
@@ -41,7 +41,7 @@ export default function Termos() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">2. Descricao do Servico</h2>
               <p className="text-gray-600">
-                O KitFreela e uma plataforma de gestao profissional para freelancers,
+                O kitFreela e uma plataforma de gestao profissional para freelancers,
                 oferecendo funcionalidades como criacao de propostas comerciais, contratos,
                 controle financeiro basico e perfil publico profissional.
               </p>
@@ -50,7 +50,7 @@ export default function Termos() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">3. Conta do Usuario</h2>
               <p className="text-gray-600">
-                Para utilizar o KitFreela, voce precisa criar uma conta. Voce e responsavel
+                Para utilizar o kitFreela, voce precisa criar uma conta. Voce e responsavel
                 por manter a confidencialidade de sua senha e por todas as atividades
                 realizadas em sua conta.
               </p>
@@ -59,7 +59,7 @@ export default function Termos() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">4. Uso Aceitavel</h2>
               <p className="text-gray-600">
-                Voce concorda em utilizar o KitFreela apenas para fins legais e de acordo
+                Voce concorda em utilizar o kitFreela apenas para fins legais e de acordo
                 com estes termos. E proibido utilizar a plataforma para atividades ilegais,
                 fraudulentas ou que violem direitos de terceiros.
               </p>
@@ -68,7 +68,7 @@ export default function Termos() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">5. Propriedade Intelectual</h2>
               <p className="text-gray-600">
-                Todo o conteudo do KitFreela, incluindo textos, graficos, logos e software,
+                Todo o conteudo do kitFreela, incluindo textos, graficos, logos e software,
                 e protegido por direitos autorais. Os documentos criados por voce na
                 plataforma sao de sua propriedade.
               </p>
@@ -77,7 +77,7 @@ export default function Termos() {
             <section>
               <h2 className="text-xl font-semibold text-gray-900 mb-3">6. Limitacao de Responsabilidade</h2>
               <p className="text-gray-600">
-                O KitFreela e fornecido "como esta". Nao garantimos que o servico sera
+                O kitFreela e fornecido "como esta". Nao garantimos que o servico sera
                 ininterrupto ou livre de erros. Nao nos responsabilizamos por danos
                 indiretos decorrentes do uso da plataforma.
               </p>

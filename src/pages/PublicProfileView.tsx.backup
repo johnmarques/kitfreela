@@ -147,21 +147,19 @@ export default function PublicProfileView() {
       </header>
 
       {/* Conteúdo Principal */}
-      <main className="w-full px-0 py-4 sm:max-w-4xl sm:mx-auto sm:px-4 sm:py-8">
+      <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Card do Perfil */}
-        <div className="bg-white sm:rounded-xl shadow-sm sm:border border-gray-200 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {/* Header do Perfil */}
           <div className="p-6 sm:p-8 text-center border-b border-gray-100">
-            {/* Foto - Circular */}
+            {/* Foto - Redonda */}
             {profile.url_foto && (
-              <div className="mb-4 flex justify-center">
-                <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-gray-100 shadow-sm border-raidius-full">
-                  <img
-                    src={profile.url_foto}
-                    alt={profile.nome_profissional}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+              <div className="mb-4">
+                <img
+                  src={profile.url_foto}
+                  alt={profile.nome_profissional}
+                  className="w-32 h-32 rounded-full object-cover mx-auto border-4 border-gray-100 shadow-sm"
+                />
               </div>
             )}
 
@@ -239,13 +237,13 @@ export default function PublicProfileView() {
         </div>
 
         {/* Footer */}
-        <div className="mt-6 sm:mt-8 px-4 sm:px-0 text-center text-sm text-gray-400">
+        <div className="mt-8 text-center text-sm text-gray-400">
           Perfil criado com{' '}
           <a
             href="/"
-            className="text-gray-600 hover:text-gray-900 brand-logo"
+            className="text-gray-600 hover:text-gray-900"
           >
-            kitFreela
+            KitFreela
           </a>
         </div>
       </main>

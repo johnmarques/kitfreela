@@ -760,7 +760,7 @@ export default function Configuracoes() {
                 />
               </svg>
             </div>
-            Sobre o KitFreela
+            Sobre o kitFreela
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">

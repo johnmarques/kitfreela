@@ -2,6 +2,13 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Fonte Century Gothic para o logo */
+.brand-logo {
+  font-family: 'Century Gothic', 'CenturyGothic', 'AppleGothic', 'Avant Garde', 'Avantgarde', sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
 @layer base {
   :root {
     --background: 0 0% 99%;
@@ -66,7 +73,7 @@
 }
 
 * {
-  border-radius: var(--radius) !important;
+  border-radius: var(--radius);
 }
 
 input::-moz-placeholder, textarea::-moz-placeholder {
@@ -255,3 +262,4 @@ input::placeholder, textarea::placeholder {
 }
 
 header{border-radius: 0 !important; border: 1px;} 
+#header-sidebar{border-radius: 0 !important; border: 1px; border-bottom: #e5e7eb;}

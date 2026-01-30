@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import { useSubscription } from '@/hooks/useSubscription'
+import { Radius } from 'lucide-react'
 
 interface NavItem {
   name: string
@@ -31,14 +32,14 @@ export default function Sidebar({ onNavigate, onUpgradeClick }: SidebarProps) {
 
   return (
     <aside className="h-full w-64  border-gray-200 bg-white">
-      <div className="flex h-full flex-col border-gray-200 px-4 md:px-6" >
+      <div className="flex h-full flex-col border-gray-200 px-4 md:px-6" style={{ borderRadius: '0px'}}>
         {/* Logo */}
-        <div className="flex align-center h-16 items-center px-4 md:px-6  border-gray-200 px-6">
-          <h1 className="text-xl font-semibold text-gray-900">Kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></h1>
+        <div itemID='header-sidebar' className="flex align-center h-16 items-center border-gray-200 border-b py-4 w-full" style={{ borderRadius: '0px'}}>
+          <h1 className="text-xl font-semibold text-gray-900 brand-logo">kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></h1>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 space-y-1 overflow-y-auto p-4">
+        <nav className="flex-1 space-y-1 overflow-y-auto p-3">
           {navItems.map((item) => (
             <NavLink
               key={item.path}

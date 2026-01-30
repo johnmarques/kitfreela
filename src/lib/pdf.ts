@@ -72,7 +72,7 @@ function generateProposalHtml(doc: Document): string {
 
       <!-- Footer -->
       <div style="border-top: 1px solid #e5e7eb; padding-top: 20px; margin-top: 40px; text-align: center; color: #9ca3af; font-size: 12px;">
-        <p style="margin: 0;">Documento gerado por KitFreela</p>
+        <p style="margin: 0;">Documento gerado por kitFreela</p>
       </div>
     </div>
   `
@@ -246,7 +246,7 @@ function generateContractHtml(doc: Document): string {
         <!-- Rodape -->
         <div style="border-top: 1px solid #d1d5db; padding-top: 15px; margin-top: 50px; text-align: center;">
           <p style="margin: 0; font-size: 10px; color: #9ca3af;">
-            Documento gerado por KitFreela • www.kitfreela.com.br
+            Documento gerado por kitFreela • www.kitfreela.com.br
           </p>
         </div>
       </div>
@@ -340,7 +340,7 @@ function generateContractHtml(doc: Document): string {
       <!-- Rodape -->
       <div style="border-top: 1px solid #d1d5db; padding-top: 15px; margin-top: 50px; text-align: center;">
         <p style="margin: 0; font-size: 10px; color: #9ca3af;">
-          Documento gerado por KitFreela • www.kitfreela.com.br
+          Documento gerado por kitFreela • www.kitfreela.com.br
         </p>
       </div>
     </div>

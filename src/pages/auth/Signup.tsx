@@ -74,7 +74,7 @@ export default function Signup() {
         {/* Logo */}
         <div className="flex justify-center">
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl font-semibold text-gray-900">Kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></span>
+            <span className="text-xl font-semibold text-gray-900 brand-logo">kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></span>
           </Link>
         </div>
 
@@ -179,7 +179,7 @@ export default function Signup() {
                     className="mt-0.5"
                   />
                   <Label htmlFor="marketing" className="text-sm text-gray-500 font-normal leading-tight cursor-pointer">
-                    Quero receber novidades e conteudos do KitFreela por e-mail
+                    Quero receber novidades e conteudos do kitFreela por e-mail
                   </Label>
                 </div>
 

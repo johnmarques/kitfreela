@@ -114,7 +114,7 @@ export default function FeedbackModal({ open, onOpenChange }: FeedbackModalProps
         <DialogHeader>
           <DialogTitle>Enviar Feedback</DialogTitle>
           <DialogDescription>
-            Sua opiniao e importante para melhorarmos o KitFreela.
+            Sua opiniao e importante para melhorarmos o kitFreela.
           </DialogDescription>
         </DialogHeader>
 

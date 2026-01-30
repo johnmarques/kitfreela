@@ -71,7 +71,7 @@ export default function Login() {
         {/* Logo */}
         <div className="flex justify-center">
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl font-semibold text-gray-900">Kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></span>
+            <span className="text-xl font-semibold text-gray-900 brand-logo">kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></span>
           </Link>
         </div>
 
@@ -81,7 +81,7 @@ export default function Login() {
             <div className="space-y-6">
               {/* Header */}
               <div className="text-center">
-                <h1 className="text-2xl font-semibold text-gray-900">Entrar no KitFreela</h1>
+                <h1 className="text-2xl font-semibold text-gray-900">Entrar no kitFreela</h1>
                 <p className="mt-2 text-sm text-gray-500">Acesse sua conta para gerenciar seus projetos</p>
               </div>
 

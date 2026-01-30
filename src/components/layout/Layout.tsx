@@ -75,7 +75,7 @@ export default function Layout() {
                 Periodo de teste encerrado
               </h2>
               <p className="mb-6 text-sm text-gray-600">
-                Seu periodo de teste gratuito de 7 dias terminou. Ative o Plano PRO para continuar usando todas as funcionalidades do KitFreela.
+                Seu periodo de teste gratuito de 7 dias terminou. Ative o Plano PRO para continuar usando todas as funcionalidades do kitFreela.
               </p>
               <Button
                 size="lg"
