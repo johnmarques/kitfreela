@@ -35,7 +35,7 @@ export default function Sidebar({ onNavigate, onUpgradeClick }: SidebarProps) {
       <div className="flex h-full flex-col border-gray-200 px-4 md:px-6" style={{ borderRadius: '0px'}}>
         {/* Logo */}
         <div itemID='header-sidebar' className="flex align-center h-16 items-center border-gray-200 border-b py-4 w-full" style={{ borderRadius: '0px'}}>
-          <h1 className="text-xl font-semibold text-gray-900 brand-logo">kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></h1>
+          <h1 className="text-xl text-gray-900 brand-logo">kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></h1>
         </div>
 
         {/* Navigation */}

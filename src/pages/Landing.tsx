@@ -18,7 +18,7 @@ export default function Landing() {
       <nav className="border-b border-gray-200">
         <div className="container mx-auto flex items-center justify-between px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2">
-            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 brand-logo">
+            <h1 className="text-lg sm:text-xl text-gray-900 brand-logo">
               kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
             </h1>
           </div>
@@ -483,7 +483,7 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-10 sm:px-6 sm:py-14">
           <div className="grid gap-8 sm:gap-10 grid-cols-2 md:grid-cols-4">
             <div>
-              <h3 className="mb-4 font-semibold text-gray-900 brand-logo">
+              <h3 className="mb-4 text-gray-900 brand-logo">
                 kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span>
               </h3>
               <p className="text-sm text-gray-600">

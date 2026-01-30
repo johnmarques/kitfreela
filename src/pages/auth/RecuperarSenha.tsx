@@ -47,7 +47,7 @@ export default function RecuperarSenha() {
         {/* Logo */}
         <div className="flex justify-center">
           <Link to="/" className="flex items-center gap-2">
-            <span className="text-xl font-semibold text-gray-900 brand-logo">kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></span>
+            <span className="text-xl text-gray-900 brand-logo">kit<span style={{ color: 'hsl(164 24% 46%)' }}>Freela</span></span>
           </Link>
         </div>
 
