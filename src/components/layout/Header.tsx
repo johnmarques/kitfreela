@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { useSubscription } from '@/hooks/useSubscription'
 import { Avatar } from '@/components/ui/avatar'
 import {
   DropdownMenu,
@@ -20,12 +21,17 @@ function getFirstName(fullName: string): string {
 export default function Header() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const subscription = useSubscription()
 
   // Pega o nome completo e extrai apenas o primeiro nome
   const fullName = user?.user_metadata?.nome || user?.email?.split('@')[0] || 'Usuario'
   const userName = getFirstName(fullName)
   const userEmail = user?.email || ''
-  const userPlan = 'Plano Gratuito' // Por enquanto fixo
+
+  // Define o texto do plano baseado na subscription
+  const userPlan = subscription.planType === 'pro' ? 'Plano PRO' :
+    subscription.subscriptionStatus === 'trial' ? `Teste Grátis (${subscription.daysRemaining} dias)` :
+    'Plano Gratuito'
 
   async function handleLogout() {
     await signOut()
