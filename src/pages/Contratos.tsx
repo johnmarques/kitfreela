@@ -233,25 +233,37 @@ export default function Contratos() {
       }).join('\n')
     }
 
+    // Valores padrão para cláusulas novas
+    const maxRevisions = 2
+    const revisionDeadline = 5
+    const supportPeriod = 30
+
     // Numeracao dinamica das clausulas
     let clausulaNum = 1
 
     const clausulaObjeto = clausulaNum++
     const clausulaEscopo = serviceScope ? clausulaNum++ : null
     const clausulaEntregas = deliverables ? clausulaNum++ : null
+    const clausulaRevisoes = deliverables ? clausulaNum++ : null // Nova - após entregas
     const clausulaValor = clausulaNum++
     const clausulaPrazo = clausulaNum++
     const clausulaObrigacoesContratante = clausulaNum++
+    const clausulaResponsabilidadeConteudo = clausulaNum++ // Nova - após obrigações contratante
     const clausulaObrigacoesContratado = clausulaNum++
     const clausulaPropriedadeIntelectual = clausulaNum++
     const clausulaConfidencialidade = clausulaNum++
+    const clausulaProtecaoDados = clausulaNum++ // Nova - após confidencialidade
     const clausulaRescisao = clausulaNum++
     const clausulaNaoVinculacao = clausulaNum++
     const clausulaResponsabilidade = clausulaNum++
+    const clausulaNaoGarantiaResultado = clausulaNum++ // Nova - após responsabilidade
     const clausulaAlteracaoEscopo = clausulaNum++
+    const clausulaSuporte = clausulaNum++ // Nova - após alteração escopo
     const clausulaSuspensao = clausulaNum++
     const clausulaAceiteEletronico = clausulaNum++
+    const clausulaComunicacoes = clausulaNum++ // Nova - após aceite eletrônico
     const clausulaDisposicoesGerais = clausulaNum++
+    const clausulaSolucaoAmigavel = clausulaNum++ // Nova - antes do foro
     const clausulaForo = clausulaNum++
 
     const numeroParaTexto = (n: number): string => {
@@ -261,141 +273,172 @@ export default function Contratos() {
         9: 'NONA', 10: 'DECIMA', 11: 'DECIMA PRIMEIRA', 12: 'DECIMA SEGUNDA',
         13: 'DECIMA TERCEIRA', 14: 'DECIMA QUARTA', 15: 'DECIMA QUINTA',
         16: 'DECIMA SEXTA', 17: 'DECIMA SETIMA', 18: 'DECIMA OITAVA',
-        19: 'DECIMA NONA', 20: 'VIGESIMA'
+        19: 'DECIMA NONA', 20: 'VIGESIMA', 21: 'VIGESIMA PRIMEIRA',
+        22: 'VIGESIMA SEGUNDA', 23: 'VIGESIMA TERCEIRA', 24: 'VIGESIMA QUARTA',
+        25: 'VIGESIMA QUINTA', 26: 'VIGESIMA SEXTA', 27: 'VIGESIMA SETIMA',
+        28: 'VIGESIMA OITAVA', 29: 'VIGESIMA NONA', 30: 'TRIGESIMA'
       }
       return numeros[n] || `${n}a`
     }
 
     return `
-CONTRATO DE PRESTACAO DE SERVICOS
+CONTRATO DE PRESTAÇÃO DE SERVIÇOS
 
 Pelo presente instrumento particular, de um lado:
 
-CONTRATANTE: ${clientInfo}${addressInfo ? `\nEndereco: ${addressInfo}` : ''}${clientEmail ? `\nE-mail: ${clientEmail}` : ''}${clientPhone ? `\nTelefone: ${clientPhone}` : ''}
+CONTRATANTE: ${clientInfo}${addressInfo ? `\nEndereço: ${addressInfo}` : ''}${clientEmail ? `\nE-mail: ${clientEmail}` : ''}${clientPhone ? `\nTelefone: ${clientPhone}` : ''}
 
-E de outro lado o CONTRATADO (prestador de servicos), tem entre si justo e acordado o seguinte:
+E, de outro lado, o CONTRATADO (prestador de serviços), têm entre si justo e acordado o seguinte:
 
-CLAUSULA ${numeroParaTexto(clausulaObjeto)} - DO OBJETO
-O presente contrato tem por objeto a prestacao dos seguintes servicos: ${serviceName}
+CLÁUSULA ${numeroParaTexto(clausulaObjeto)} - DO OBJETO  
+O presente contrato tem por objeto a prestação dos seguintes serviços: ${serviceName}
 
-Paragrafo unico: O CONTRATADO se compromete a executar os servicos com zelo, diligencia e boa tecnica, observando as especificacoes acordadas entre as partes.
+Parágrafo único: O CONTRATADO se compromete a executar os serviços com zelo, diligência e boa técnica, observando as especificações acordadas entre as partes.
 ${serviceScope ? `
-CLAUSULA ${numeroParaTexto(clausulaEscopo!)} - DO ESCOPO
+CLÁUSULA ${numeroParaTexto(clausulaEscopo!)} - DO ESCOPO
 ${serviceScope}
 
-Paragrafo unico: Quaisquer servicos, funcionalidades ou entregas nao descritos expressamente nesta clausula estao fora do escopo deste contrato e, se solicitados, deverao ser objeto de nova negociacao.
+Parágrafo único: Quaisquer serviços, funcionalidades ou entregas não descritos expressamente nesta cláusula estão fora do escopo deste contrato e, se solicitados, deverão ser objeto de nova negociação.
 ` : ''}${deliverables ? `
-CLAUSULA ${numeroParaTexto(clausulaEntregas!)} - DAS ENTREGAS
+CLÁUSULA ${numeroParaTexto(clausulaEntregas!)} - DAS ENTREGAS
 ${deliverables}
 
-Paragrafo unico: As entregas serao consideradas aprovadas apos o prazo de 5 (cinco) dias uteis contados do recebimento, caso o CONTRATANTE nao apresente ressalvas por escrito.
+Parágrafo único: As entregas serão consideradas aprovadas após o prazo de 5 (cinco) dias úteis, contados do recebimento, caso o CONTRATANTE não apresente ressalvas por escrito.
+
+CLÁUSULA ${numeroParaTexto(clausulaRevisoes!)} - DAS REVISÕES E AJUSTES
+O CONTRATADO realizará até ${maxRevisions} rodada(s) de ajustes nas entregas, desde que solicitadas pelo CONTRATANTE no prazo de ${revisionDeadline} dias úteis contados do recebimento da entrega.
+
+Parágrafo único: Solicitações de ajustes adicionais, fora do prazo ou em quantidade superior à prevista nesta cláusula, serão consideradas alteração de escopo, sujeitas a nova negociação de prazo e valor.
 ` : ''}
-CLAUSULA ${numeroParaTexto(clausulaValor)} - DO VALOR E FORMA DE PAGAMENTO
-O valor total dos servicos objeto deste contrato e de ${formatCurrency(value)}, a ser pago ${paymentText}
-${paymentNotes ? `\nObservacoes: ${paymentNotes}` : ''}
+CLÁUSULA ${numeroParaTexto(clausulaValor)} - DO VALOR E FORMA DE PAGAMENTO
+O valor total dos serviços objeto deste contrato é de ${formatCurrency(value)}, a ser pago ${paymentText}
+${paymentNotes ? `\nObservações: ${paymentNotes}` : ''}
 
-Paragrafo primeiro: Em caso de atraso no pagamento, incidira multa de 2% (dois por cento) sobre o valor devido, acrescido de juros de mora de 1% (um por cento) ao mes, calculados pro rata die.
+Parágrafo primeiro: Em caso de atraso no pagamento, incidirá multa de 2% (dois por cento) sobre o valor devido, acrescida de juros de mora de 1% (um por cento) ao mês, calculados pro rata die.
 
-Paragrafo segundo: O CONTRATADO podera suspender a execucao dos servicos apos 10 (dez) dias de atraso no pagamento, sem que isso caracterize inadimplemento de sua parte.
+Parágrafo segundo: O CONTRATADO poderá suspender a execução dos serviços após 10 (dez) dias de atraso no pagamento, sem que isso caracterize inadimplemento de sua parte.
 
-CLAUSULA ${numeroParaTexto(clausulaPrazo)} - DO PRAZO
-${deadlineText ? `O prazo para execucao dos servicos e de ${deadlineText}, contados a partir da assinatura deste contrato ou do recebimento de todas as informacoes e materiais necessarios, o que ocorrer por ultimo.` : 'O prazo sera definido em comum acordo entre as partes.'}
+CLÁUSULA ${numeroParaTexto(clausulaPrazo)} - DO PRAZO
+${deadlineText ? `O prazo para execução dos serviços é de ${deadlineText}, contados a partir da assinatura deste contrato ou do recebimento de todas as informações e materiais necessários, o que ocorrer por último.` : 'O prazo será definido em comum acordo entre as partes.'}
 
-Paragrafo primeiro: O prazo podera ser prorrogado mediante acordo escrito entre as partes, especialmente nos casos de:
-a) solicitacao de alteracoes no escopo pelo CONTRATANTE;
-b) atraso no fornecimento de informacoes ou materiais pelo CONTRATANTE;
-c) eventos de forca maior ou caso fortuito.
+Parágrafo primeiro: O prazo poderá ser prorrogado mediante acordo escrito entre as partes, especialmente nos casos de:
+a) solicitação de alterações no escopo pelo CONTRATANTE;
+b) atraso no fornecimento de informações ou materiais pelo CONTRATANTE;
+c) eventos de força maior ou caso fortuito.
 
-Paragrafo segundo: Eventuais atrasos causados exclusivamente pelo CONTRATANTE nao configuram inadimplemento do CONTRATADO.
+Parágrafo segundo: Eventuais atrasos causados exclusivamente pelo CONTRATANTE não configuram inadimplemento do CONTRATADO.
 
-CLAUSULA ${numeroParaTexto(clausulaObrigacoesContratante)} - DAS OBRIGACOES DO CONTRATANTE
-Constituem obrigacoes do CONTRATANTE:
-a) fornecer todas as informacoes, dados, materiais e acessos necessarios a execucao dos servicos, em tempo habil;
-b) efetuar os pagamentos nas datas e condicoes acordadas;
-c) designar responsavel para aprovacoes e comunicacoes;
-d) responder tempestivamente as solicitacoes do CONTRATADO;
+CLÁUSULA ${numeroParaTexto(clausulaObrigacoesContratante)} - DAS OBRIGAÇÕES DO CONTRATANTE
+Constituem obrigações do CONTRATANTE:
+a) fornecer todas as informações, dados, materiais e acessos necessários à execução dos serviços, em tempo hábil;
+b) efetuar os pagamentos nas datas e condições acordadas;
+c) designar responsável para aprovações e comunicações;
+d) responder tempestivamente às solicitações do CONTRATADO;
 e) aprovar ou solicitar ajustes nas entregas dentro do prazo estipulado.
 
-CLAUSULA ${numeroParaTexto(clausulaObrigacoesContratado)} - DAS OBRIGACOES DO CONTRATADO
-Constituem obrigacoes do CONTRATADO:
-a) executar os servicos de acordo com as especificacoes acordadas;
+CLÁUSULA ${numeroParaTexto(clausulaResponsabilidadeConteudo)} - DA RESPONSABILIDADE SOBRE CONTEÚDOS
+O CONTRATANTE declara ser o legítimo titular ou possuir autorização para uso de todos os dados, informações, textos, imagens, marcas e demais conteúdos fornecidos ao CONTRATADO para execução dos serviços, responsabilizando-se integralmente por seu uso.
+
+Parágrafo único: O CONTRATANTE isenta o CONTRATADO de qualquer responsabilidade por reclamações, demandas, perdas ou prejuízos decorrentes da utilização dos conteúdos fornecidos.
+
+CLÁUSULA ${numeroParaTexto(clausulaObrigacoesContratado)} - DAS OBRIGAÇÕES DO CONTRATADO  
+Constituem obrigações do CONTRATADO:
+a) executar os serviços de acordo com as especificações acordadas;
 b) manter o CONTRATANTE informado sobre o andamento dos trabalhos;
-c) cumprir os prazos estabelecidos, salvo nas hipoteses de prorrogacao previstas neste contrato;
-d) prestar os esclarecimentos que se fizerem necessarios;
-e) manter sigilo sobre informacoes confidenciais do CONTRATANTE.
+c) cumprir os prazos estabelecidos, salvo nas hipóteses de prorrogação previstas neste contrato;
+d) prestar os esclarecimentos que se fizerem necessários;
+e) manter sigilo sobre informações confidenciais do CONTRATANTE.
 
-CLAUSULA ${numeroParaTexto(clausulaPropriedadeIntelectual)} - DA PROPRIEDADE INTELECTUAL
-Todos os direitos patrimoniais sobre os trabalhos desenvolvidos em razao deste contrato serao transferidos ao CONTRATANTE apos a quitacao integral do valor contratado.
+CLÁUSULA ${numeroParaTexto(clausulaPropriedadeIntelectual)} - DA PROPRIEDADE INTELECTUAL  
+Todos os direitos patrimoniais sobre os trabalhos desenvolvidos em razão deste contrato serão transferidos ao CONTRATANTE após a quitação integral do valor contratado.
 
-Paragrafo primeiro: Ate a quitacao integral, o CONTRATADO mantera a titularidade dos direitos sobre os trabalhos desenvolvidos.
+Parágrafo primeiro: Até a quitação integral, o CONTRATADO manterá a titularidade dos direitos sobre os trabalhos desenvolvidos.
 
-Paragrafo segundo: O CONTRATADO reserva-se o direito de utilizar os trabalhos em seu portfolio profissional, salvo disposicao expressa em contrario.
+Parágrafo segundo: O CONTRATADO reserva-se o direito de utilizar os trabalhos em seu portfólio profissional, salvo disposição expressa em contrário.
 
-CLAUSULA ${numeroParaTexto(clausulaConfidencialidade)} - DA CONFIDENCIALIDADE
-As partes se comprometem a manter em sigilo todas as informacoes confidenciais a que tiverem acesso em razao deste contrato, nao podendo divulga-las a terceiros sem autorizacao previa e expressa da outra parte.
+CLÁUSULA ${numeroParaTexto(clausulaConfidencialidade)} - DA CONFIDENCIALIDADE
+As partes se comprometem a manter em sigilo todas as informações confidenciais a que tiverem acesso em razão deste contrato, não podendo divulgá-las a terceiros sem autorização prévia e expressa da outra parte.
 
-Paragrafo unico: Esta obrigacao perdurara mesmo apos o termino ou rescisao deste contrato, pelo prazo de 2 (dois) anos.
+Parágrafo único: Esta obrigação perdurará mesmo após o término ou rescisão deste contrato, pelo prazo de 2 (dois) anos.
 
-CLAUSULA ${numeroParaTexto(clausulaRescisao)} - DA RESCISAO
-O presente contrato podera ser rescindido:
-a) por acordo mutuo entre as partes, formalizado por escrito;
-b) por qualquer das partes, mediante aviso previo de 15 (quinze) dias, com pagamento proporcional pelos servicos ja executados;
-c) de imediato, em caso de descumprimento de clausula contratual, apos notificacao e prazo de 5 (cinco) dias para regularizacao.
+CLÁUSULA ${numeroParaTexto(clausulaProtecaoDados)} - DA PROTEÇÃO DE DADOS
+As partes comprometem-se a tratar os dados pessoais a que tiverem acesso em conformidade com a legislação vigente, especialmente a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados – LGPD).
 
-Paragrafo unico: Em caso de rescisao, o CONTRATANTE devera pagar ao CONTRATADO pelos servicos efetivamente prestados ate a data da rescisao.
+CLÁUSULA ${numeroParaTexto(clausulaRescisao)} - DA RESCISÃO  
+O presente contrato poderá ser rescindido:
+a) por acordo mútuo entre as partes, formalizado por escrito;
+b) por qualquer das partes, mediante aviso prévio de 15 (quinze) dias, com pagamento proporcional pelos serviços já executados;
+c) de imediato, em caso de descumprimento de cláusula contratual, após notificação e prazo de 5 (cinco) dias para regularização.
 
-CLAUSULA ${numeroParaTexto(clausulaNaoVinculacao)} - DA NAO VINCULACAO EMPREGATICIA
-O presente contrato nao gera vinculo empregaticio, societario ou de qualquer outra natureza entre as partes, sendo o CONTRATADO profissional autonomo que executa os servicos com independencia tecnica e operacional.
+Parágrafo único: Em caso de rescisão, o CONTRATANTE deverá pagar ao CONTRATADO pelos serviços efetivamente prestados até a data da rescisão.
 
-Paragrafo primeiro: O CONTRATADO podera prestar servicos a outros clientes durante a vigencia deste contrato, nao havendo clausula de exclusividade, salvo se expressamente pactuada.
+CLÁUSULA ${numeroParaTexto(clausulaNaoVinculacao)} - DA NÃO VINCULAÇÃO EMPREGATÍCIA  
+O presente contrato não gera vínculo empregatício, societário ou de qualquer outra natureza entre as partes, sendo o CONTRATADO profissional autônomo que executa os serviços com independência técnica e operacional.
 
-Paragrafo segundo: Cada parte sera responsavel pelos seus respectivos encargos fiscais, trabalhistas e previdenciarios.
+Parágrafo primeiro: O CONTRATADO poderá prestar serviços a outros clientes durante a vigência deste contrato, não havendo cláusula de exclusividade, salvo se expressamente pactuada.
 
-CLAUSULA ${numeroParaTexto(clausulaResponsabilidade)} - DA LIMITACAO DE RESPONSABILIDADE
+Parágrafo segundo: Cada parte será responsável pelos seus respectivos encargos fiscais, trabalhistas e previdenciários.
+
+CLÁUSULA ${numeroParaTexto(clausulaResponsabilidade)} - DA LIMITAÇÃO DE RESPONSABILIDADE
 A responsabilidade do CONTRATADO limita-se ao valor total deste contrato, excluindo-se expressamente:
 a) lucros cessantes;
 b) danos indiretos ou consequenciais;
-c) perdas decorrentes de decisoes comerciais ou estrategicas do CONTRATANTE;
-d) danos causados por uso inadequado dos servicos ou entregas.
+c) perdas decorrentes de decisões comerciais ou estratégicas do CONTRATANTE;
+d) danos causados por uso inadequado dos serviços ou entregas.
 
-Paragrafo unico: O CONTRATADO nao se responsabiliza por falhas, interrupcoes ou perdas decorrentes de servicos de terceiros, incluindo hospedagem, dominios, APIs externas ou infraestrutura tecnologica nao fornecida pelo CONTRATADO.
+Parágrafo único: O CONTRATADO não se responsabiliza por falhas, interrupções ou perdas decorrentes de serviços de terceiros, incluindo hospedagem, domínios, APIs externas ou infraestrutura tecnológica não fornecida pelo CONTRATADO.
 
-CLAUSULA ${numeroParaTexto(clausulaAlteracaoEscopo)} - DA ALTERACAO DE ESCOPO
-Qualquer alteracao no escopo dos servicos devera ser formalizada por escrito entre as partes.
+CLÁUSULA ${numeroParaTexto(clausulaNaoGarantiaResultado)} - DA NÃO GARANTIA DE RESULTADOS
+O CONTRATADO compromete-se a empregar os melhores esforços técnicos e profissionais na execução dos serviços, não garantindo resultados financeiros, comerciais, operacionais ou de desempenho específicos.
 
-Paragrafo primeiro: Alteracoes de escopo poderao implicar em:
+CLÁUSULA ${numeroParaTexto(clausulaAlteracaoEscopo)} - DA ALTERAÇÃO DE ESCOPO
+Qualquer alteração no escopo dos serviços deverá ser formalizada por escrito entre as partes.
+
+Parágrafo primeiro: Alterações de escopo poderão implicar em:
 a) ajuste no valor do contrato;
 b) ajuste no prazo de entrega;
-c) renegociacao das condicoes de pagamento.
+c) renegociação das condições de pagamento.
 
-Paragrafo segundo: O CONTRATADO nao e obrigado a executar servicos fora do escopo originalmente contratado sem a devida formalizacao e acordo sobre valores e prazos.
+Parágrafo segundo: O CONTRATADO não é obrigado a executar serviços fora do escopo originalmente contratado sem a devida formalização e acordo sobre valores e prazos.
 
-CLAUSULA ${numeroParaTexto(clausulaSuspensao)} - DA SUSPENSAO DOS SERVICOS
-O CONTRATADO podera suspender a execucao dos servicos, sem que isso caracterize inadimplemento, nas seguintes hipoteses:
+CLÁUSULA ${numeroParaTexto(clausulaSuporte)} - DO SUPORTE PÓS-ENTREGA
+Após a entrega final dos serviços, o CONTRATADO prestará suporte pelo prazo de ${supportPeriod} dias, limitado à correção de erros diretamente relacionados aos serviços contratados.
+
+Parágrafo único: O suporte não inclui novas funcionalidades, alterações de escopo, melhorias ou demandas não previstas neste contrato.
+
+CLÁUSULA ${numeroParaTexto(clausulaSuspensao)} - DA SUSPENSÃO DOS SERVIÇOS  
+O CONTRATADO poderá suspender a execução dos serviços, sem que isso caracterize inadimplemento, nas seguintes hipóteses:
 a) atraso superior a 10 (dez) dias no pagamento de qualquer parcela;
-b) ausencia de fornecimento de informacoes, materiais ou acessos necessarios por prazo superior a 15 (quinze) dias apos solicitacao;
-c) solicitacao expressa do CONTRATANTE.
+b) ausência de fornecimento de informações, materiais ou acessos necessários por prazo superior a 15 (quinze) dias após solicitação;
+c) solicitação expressa do CONTRATANTE.
 
-Paragrafo unico: A retomada dos servicos ocorrera em ate 5 (cinco) dias uteis apos a regularizacao da pendencia que motivou a suspensao, podendo haver ajuste proporcional no prazo de entrega.
+Parágrafo único: A retomada dos serviços ocorrerá em até 5 (cinco) dias úteis após a regularização da pendência que motivou a suspensão, podendo haver ajuste proporcional no prazo de entrega.
 
-CLAUSULA ${numeroParaTexto(clausulaAceiteEletronico)} - DO ACEITE ELETRONICO
-As partes reconhecem como valido o aceite eletronico deste contrato, realizado por meio de plataformas digitais, e-mail, aplicativos de mensagens ou qualquer outro meio eletronico que permita a identificacao das partes e a manifestacao inequivoca de vontade.
+CLÁUSULA ${numeroParaTexto(clausulaAceiteEletronico)} - DO ACEITE ELETRÔNICO
+As partes reconhecem como válido o aceite eletrônico deste contrato, realizado por meio de plataformas digitais, e-mail, aplicativos de mensagens ou qualquer outro meio eletrônico que permita a identificação das partes e a manifestação inequívoca de vontade.
 
-Paragrafo unico: O aceite eletronico confere ao presente instrumento plena validade juridica, nos termos da legislacao vigente, especialmente a Medida Provisoria n. 2.200-2/2001.
+Parágrafo único: O aceite eletrônico confere ao presente instrumento plena validade jurídica, nos termos da legislação vigente, especialmente a Medida Provisória n. 2.200-2/2001.
 
-CLAUSULA ${numeroParaTexto(clausulaDisposicoesGerais)} - DAS DISPOSICOES GERAIS
-Paragrafo primeiro: A eventual tolerancia de qualquer das partes quanto ao descumprimento de obrigacoes pela outra nao importara em novacao, renunciou ou alteracao do pactuado.
+CLÁUSULA ${numeroParaTexto(clausulaComunicacoes)} - DAS COMUNICAÇÕES
+As comunicações oficiais entre as partes deverão ocorrer por meio de e-mail, plataforma do CONTRATADO ou outro canal formal previamente acordado entre as partes.
 
-Paragrafo segundo: Se qualquer clausula deste contrato for considerada invalida ou inexequivel, as demais clausulas permanecerao em pleno vigor e efeito.
+CLÁUSULA ${numeroParaTexto(clausulaDisposicoesGerais)} - DAS DISPOSIÇÕES GERAIS  
+Parágrafo primeiro: A eventual tolerância de qualquer das partes quanto ao descumprimento de obrigações pela outra não importará em novação, renúncia ou alteração do pactuado.
 
-Paragrafo terceiro: Este contrato representa o acordo integral entre as partes sobre seu objeto, substituindo todos os entendimentos anteriores, verbais ou escritos.
+Parágrafo segundo: Se qualquer cláusula deste contrato for considerada inválida ou inexequível, as demais cláusulas permanecerão em pleno vigor e efeito.
 
-Paragrafo quarto: Qualquer alteracao deste contrato somente sera valida se formalizada por escrito e assinada por ambas as partes.
+Parágrafo terceiro: Este contrato representa o acordo integral entre as partes sobre seu objeto, substituindo todos os entendimentos anteriores, verbais ou escritos.
 
-CLAUSULA ${numeroParaTexto(clausulaForo)} - DO FORO
-As partes elegem o foro da comarca do domicilio do CONTRATADO para dirimir quaisquer controversias oriundas deste contrato, com renuncia expressa a qualquer outro, por mais privilegiado que seja.
+Parágrafo quarto: Qualquer alteração deste contrato somente será válida se formalizada por escrito e assinada por ambas as partes.
 
-E, por estarem assim justas e contratadas, as partes assinam o presente instrumento em duas vias de igual teor e forma, na presenca de duas testemunhas.
+CLÁUSULA ${numeroParaTexto(clausulaSolucaoAmigavel)} - DA SOLUÇÃO AMIGÁVEL DE CONFLITOS
+As partes comprometem-se a buscar solução amigável para eventuais controvérsias decorrentes deste contrato antes do ajuizamento de qualquer ação judicial.
+
+CLÁUSULA ${numeroParaTexto(clausulaForo)} - DO FORO  
+As partes elegem o foro da comarca do domicílio do CONTRATADO para dirimir quaisquer controvérsias oriundas deste contrato, com renúncia expressa a qualquer outro, por mais privilegiado que seja.
+
+E, por estarem assim justas e contratadas, as partes assinam o presente instrumento em duas vias de igual teor e forma, na presença de duas testemunhas.
+
 
 Local e data: _______________, ${today}
 
@@ -436,7 +479,7 @@ CPF:
     }
 
     if (!user?.id) {
-      toast.error('Usuario nao autenticado. Faca login novamente.')
+      toast.error('Usuario não autenticado. Faca login novamente.')
       return
     }
 
@@ -958,7 +1001,7 @@ CPF:
                   id="paymentNotes"
                   value={paymentNotes}
                   onChange={(e) => setPaymentNotes(e.target.value)}
-                  placeholder="Informacoes adicionais sobre o pagamento..."
+                  placeholder="Informações adicionais sobre o pagamento..."
                   rows={3}
                 />
               </div>

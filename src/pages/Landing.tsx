@@ -52,7 +52,7 @@ export default function Landing() {
             <div className="flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Link to="/cadastro" className="w-full sm:w-auto">
                 <Button size="lg" className="w-full sm:w-auto shadow-lg shadow-primary/25 hover:shadow-primary/40 transition-shadow">
-                  Comecar gratis
+                  Começar grátis
                 </Button>
               </Link>
               <Button
@@ -64,7 +64,7 @@ export default function Landing() {
                 Ver como funciona
               </Button>
             </div>
-            <p className="mt-4 text-xs sm:text-sm text-gray-500">Teste gratis por 7 dias. Sem cartao de credito.</p>
+            <p className="mt-4 text-xs sm:text-sm text-gray-500">Teste grátis por 7 dias. Sem cartão de crédito.</p>
           </div>
         </div>
       </section>
@@ -77,7 +77,7 @@ export default function Landing() {
               Pare de perder tempo com planilhas e documentos desorganizados
             </h2>
             <p className="mb-8 text-base text-gray-600 sm:mb-12 sm:text-lg">
-              Problemas reais que voce enfrenta todo dia
+              Problemas reais que você enfrenta todo dia
             </p>
           </div>
 
@@ -430,27 +430,27 @@ export default function Landing() {
               <div className="rounded-lg border border-gray-200 p-4">
                 <h4 className="font-medium text-gray-900 mb-2">Como funciona o teste gratis?</h4>
                 <p className="text-sm text-gray-600">
-                  Voce tem 7 dias para testar todas as funcionalidades do kitFreela.
-                  Nao pedimos cartao de credito. Depois do teste, voce decide se quer continuar.
+                  Você tem 7 dias para testar todas as funcionalidades do kitFreela.
+                  Não pedimos cartão de crédito. Depois do teste, você decide se quer continuar.
                 </p>
               </div>
               <div className="rounded-lg border border-gray-200 p-4">
-                <h4 className="font-medium text-gray-900 mb-2">Preciso de cartao de credito para comecar?</h4>
+                <h4 className="font-medium text-gray-900 mb-2">Preciso de cartão de crédito para começar?</h4>
                 <p className="text-sm text-gray-600">
-                  Nao. O teste gratis nao pede cartao. Voce so precisa de um email valido para criar sua conta.
+                  Não. O teste grátis não pede cartão. Você só precisa de um email válido para criar sua conta.
                 </p>
               </div>
               <div className="rounded-lg border border-gray-200 p-4">
                 <h4 className="font-medium text-gray-900 mb-2">Posso cancelar a qualquer momento?</h4>
                 <p className="text-sm text-gray-600">
-                  Sim. Nao tem fidelidade nem multa. Voce cancela quando quiser direto na plataforma.
+                  Sim. Não tem fidelidade nem multa. Você cancela quando quiser direto na plataforma.
                 </p>
               </div>
               <div className="rounded-lg border border-gray-200 p-4">
                 <h4 className="font-medium text-gray-900 mb-2">Meus dados ficam salvos se eu cancelar?</h4>
                 <p className="text-sm text-gray-600">
-                  Seus dados ficam guardados por 30 dias apos o cancelamento. Se quiser voltar,
-                  esta tudo la esperando voce.
+                  Seus dados ficam guardados por 30 dias após o cancelamento. Se quiser voltar,
+                  está tudo lá esperando você.
                 </p>
               </div>
             </div>

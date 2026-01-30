@@ -182,6 +182,7 @@ export default function Propostas() {
           freelancer_id: freelancerId,
           nome: clienteNome,
           email: clienteEmail || undefined,
+          
           telefone: clienteTelefone || undefined,
         })
         console.log('[Propostas] Cliente ID:', clienteId)

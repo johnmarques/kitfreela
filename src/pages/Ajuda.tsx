@@ -69,6 +69,8 @@ export default function Ajuda() {
               </CardContent>
             </Card>
 
+    {/* ISSO AQUI VAMOS ATIVAR DEPOIS
+    
             <Card>
               <CardHeader>
                 <CardTitle className="text-lg">Precisa de mais ajuda?</CardTitle>
@@ -85,6 +87,7 @@ export default function Ajuda() {
                 </a>
               </CardContent>
             </Card>
+    */}
           </div>
         </div>
       </div>

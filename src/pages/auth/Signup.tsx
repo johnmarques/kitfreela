@@ -148,6 +148,21 @@ export default function Signup() {
                   />
                 </div>
 
+
+                {/* Marketing - Opcional */}
+                <div className="flex items-start space-x-3">
+                  <Checkbox
+                    id="marketing"
+                    checked={marketingOptIn}
+                    onCheckedChange={(checked) => setMarketingOptIn(checked === true)}
+                    disabled={loading}
+                    className="mt-0.5"
+                  />
+                  <Label htmlFor="marketing" className="text-sm text-gray-500 font-normal leading-tight cursor-pointer">
+                    Quero receber novidades e conteudos do kitFreela por e-mail
+                  </Label>
+                </div>
+
                 {/* Aceitar Termos - Obrigatório */}
                 <div className="flex items-start space-x-3">
                   <Checkbox
@@ -169,19 +184,7 @@ export default function Signup() {
                   </Label>
                 </div>
 
-                {/* Marketing - Opcional */}
-                <div className="flex items-start space-x-3">
-                  <Checkbox
-                    id="marketing"
-                    checked={marketingOptIn}
-                    onCheckedChange={(checked) => setMarketingOptIn(checked === true)}
-                    disabled={loading}
-                    className="mt-0.5"
-                  />
-                  <Label htmlFor="marketing" className="text-sm text-gray-500 font-normal leading-tight cursor-pointer">
-                    Quero receber novidades e conteudos do kitFreela por e-mail
-                  </Label>
-                </div>
+    
 
                 {/* Botão */}
                 <Button
