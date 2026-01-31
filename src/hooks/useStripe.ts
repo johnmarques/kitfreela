@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { useAuth } from '@/contexts/AuthContext'
+import { supabase } from '@/lib/supabase'
 import { toast } from 'sonner'
 
 // Configuracao do Stripe - Modo Live (Producao)
@@ -13,25 +13,34 @@ interface UseStripeReturn {
 }
 
 export function useStripe(): UseStripeReturn {
-  const { session } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
 
   // Cria sessao de checkout do Stripe
   const createCheckout = useCallback(async () => {
-    if (!session?.access_token) {
-      toast.error('Voce precisa estar logado para assinar')
-      return
-    }
-
     setIsLoading(true)
 
     try {
+      // Busca sessao atualizada diretamente do Supabase
+      const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession()
+
+      if (sessionError || !freshSession?.access_token) {
+        console.error('Erro ao obter sessao:', sessionError)
+        toast.error('Voce precisa estar logado para assinar')
+        setIsLoading(false)
+        return
+      }
+
+      // Debug: mostra info do token
+      console.log('Token disponivel:', !!freshSession.access_token)
+      console.log('Token (primeiros 50 chars):', freshSession.access_token?.substring(0, 50))
+      console.log('User ID:', freshSession.user?.id)
+
       // Chama a Edge Function create-checkout
       // O price_id e lido das secrets no backend (mais seguro)
       const response = await fetch(`${SUPABASE_URL}/functions/v1/create-checkout`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${freshSession.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -40,9 +49,11 @@ export function useStripe(): UseStripeReturn {
       })
 
       const data = await response.json()
+      console.log('Resposta do servidor:', data)
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao criar sessao de pagamento')
+        const errorMsg = data.details ? `${data.error}: ${data.details}` : data.error
+        throw new Error(errorMsg || 'Erro ao criar sessao de pagamento')
       }
 
       // Redireciona para o checkout do Stripe
@@ -58,22 +69,27 @@ export function useStripe(): UseStripeReturn {
     } finally {
       setIsLoading(false)
     }
-  }, [session?.access_token])
+  }, [])
 
   // Abre o portal do cliente Stripe
   const openCustomerPortal = useCallback(async (returnUrl?: string) => {
-    if (!session?.access_token) {
-      toast.error('Voce precisa estar logado')
-      return
-    }
-
     setIsLoading(true)
 
     try {
+      // Busca sessao atualizada diretamente do Supabase
+      const { data: { session: freshSession }, error: sessionError } = await supabase.auth.getSession()
+
+      if (sessionError || !freshSession?.access_token) {
+        console.error('Erro ao obter sessao:', sessionError)
+        toast.error('Voce precisa estar logado')
+        setIsLoading(false)
+        return
+      }
+
       const response = await fetch(`${SUPABASE_URL}/functions/v1/customer-portal`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${session.access_token}`,
+          'Authorization': `Bearer ${freshSession.access_token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
@@ -100,7 +116,7 @@ export function useStripe(): UseStripeReturn {
     } finally {
       setIsLoading(false)
     }
-  }, [session?.access_token])
+  }, [])
 
   return {
     isLoading,

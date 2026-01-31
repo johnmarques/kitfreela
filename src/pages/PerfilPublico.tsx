@@ -242,6 +242,41 @@ export default function PerfilPublico() {
               <p className="text-xs text-gray-500 mt-1">Suas informacoes profissionais</p>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Foto de Perfil - Primeiro campo */}
+              <div className="space-y-2">
+                <Label htmlFor="urlFoto">Foto de Perfil</Label>
+                <Input
+                  id="urlFoto"
+                  placeholder="https://..."
+                  value={data.urlFoto}
+                  onChange={(e) => updateField('urlFoto', e.target.value)}
+                />
+                <p className="text-xs text-gray-500">
+                  Cole o link de uma imagem (ex: Google Drive, Imgur, etc.)
+                </p>
+                {/* Preview da foto de perfil */}
+                {data.urlFoto && (
+                  <div className="mt-3 flex items-center gap-4">
+                    <div className="relative h-20 w-20 rounded-full overflow-hidden border-2 border-gray-200 bg-gray-100 flex-shrink-0">
+                      <img
+                        src={data.urlFoto}
+                        alt="Preview da foto de perfil"
+                        className="h-full w-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'none'
+                        }}
+                        onLoad={(e) => {
+                          (e.target as HTMLImageElement).style.display = 'block'
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Preview da sua foto de perfil
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="nomeProfissional">Nome Profissional</Label>
                 <Input
@@ -273,16 +308,6 @@ export default function PerfilPublico() {
                   onChange={(e) => updateField('miniBio', e.target.value)}
                 />
                 <p className="text-right text-xs text-gray-500">{data.miniBio.length}/200</p>
-              </div>
-
-              <div className="space-y-2 ">
-                <Label htmlFor="urlFoto">URL da Foto</Label>
-                <Input
-                  id="urlFoto"
-                  placeholder="https://..."
-                  value={data.urlFoto}
-                  onChange={(e) => updateField('urlFoto', e.target.value)}
-                />
               </div>
 
               <div className="space-y-2">
