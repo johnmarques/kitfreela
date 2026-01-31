@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react'
 import { useAuth } from '@/contexts/AuthContext'
 import { toast } from 'sonner'
 
-// Configuracao do Stripe - Modo Teste
+// Configuracao do Stripe - Modo Live (Producao)
 // URL base do Supabase (usa variavel de ambiente ou fallback)
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://kprgoxojtzexuclwhotp.supabase.co'
 
